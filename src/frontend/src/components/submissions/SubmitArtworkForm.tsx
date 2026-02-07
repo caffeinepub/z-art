@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,12 +6,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle, Upload, X } from 'lucide-react';
+import { Loader2, AlertCircle, Upload, X, RefreshCw, Trash2 } from 'lucide-react';
 import { useSubmitArtwork } from '../../hooks/useSubmitArtwork';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { useGetCallerArtistProfile } from '../../hooks/useArtists';
 import { fileToDataUrl } from '../../utils/fileToDataUrl';
 import { parseGBPToMinorUnits } from '../../utils/gbpMoney';
+import { loadDraft, saveDraft, clearDraft } from '../../utils/submitArtworkDraft';
 import ArtworkImage from '../images/ArtworkImage';
 import CreateArtistProfileForm from '../artists/CreateArtistProfileForm';
 
@@ -33,12 +34,45 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showProfileForm, setShowProfileForm] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormData>();
+    reset,
+    watch,
+  } = useForm<FormData>({
+    defaultValues: {
+      title: '',
+      description: '',
+      price: '',
+    },
+  });
+
+  // Load draft on mount
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft) {
+      reset({
+        title: draft.title,
+        description: draft.description,
+        price: draft.price,
+      });
+      setImagePreview(draft.imagePreview);
+    }
+  }, [reset]);
+
+  // Watch form values and save draft
+  const formValues = watch();
+  useEffect(() => {
+    saveDraft({
+      title: formValues.title || '',
+      description: formValues.description || '',
+      price: formValues.price || '',
+      imagePreview,
+    });
+  }, [formValues.title, formValues.description, formValues.price, imagePreview]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,12 +87,34 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
       setError(err instanceof Error ? err.message : 'Failed to load image');
       setImageFile(null);
       setImagePreview(null);
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
   const clearImage = () => {
     setImageFile(null);
     setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const replaceImage = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleDiscardDraft = () => {
+    clearDraft();
+    reset({
+      title: '',
+      description: '',
+      price: '',
+    });
+    clearImage();
+    setError(null);
   };
 
   const onSubmit = async (data: FormData) => {
@@ -74,7 +130,7 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
       return;
     }
 
-    if (!imageFile || !imagePreview) {
+    if (!imageFile && !imagePreview) {
       setError('Please select an image file');
       return;
     }
@@ -86,7 +142,7 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
         {
           title: data.title,
           description: data.description,
-          imageUrl: imagePreview,
+          imageUrl: imagePreview!,
           price,
         },
         {
@@ -189,23 +245,37 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
           <div className="space-y-2">
             <Label htmlFor="image">Artwork Image *</Label>
             {imagePreview ? (
-              <div className="relative">
-                <ArtworkImage
-                  src={imagePreview}
-                  alt="Preview"
-                  className="w-full h-64 object-cover rounded-lg border"
-                  aspectClassName="h-64"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2"
-                  onClick={clearImage}
-                  disabled={isPending}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+              <div className="space-y-3">
+                <div className="relative">
+                  <ArtworkImage
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-64 object-cover rounded-lg border"
+                    aspectClassName="h-64"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={replaceImage}
+                    disabled={isPending}
+                    className="flex-1"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Replace Image
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={clearImage}
+                    disabled={isPending}
+                    className="flex-1"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Remove Image
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
@@ -218,16 +288,17 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
                   <br />
                   <span className="text-xs">PNG, JPG, GIF up to 5MB</span>
                 </Label>
-                <Input
-                  id="image"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                  disabled={isPending}
-                />
               </div>
             )}
+            <Input
+              ref={fileInputRef}
+              id="image"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+              disabled={isPending}
+            />
           </div>
 
           <div className="space-y-2">
@@ -249,16 +320,27 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isPending || !imagePreview}>
-            {isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              'Submit Artwork'
-            )}
-          </Button>
+          <div className="flex gap-3">
+            <Button type="submit" className="flex-1" disabled={isPending || !imagePreview}>
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                'Submit Artwork'
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleDiscardDraft}
+              disabled={isPending}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Discard Draft
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>

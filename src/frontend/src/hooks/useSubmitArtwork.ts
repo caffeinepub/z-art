@@ -20,7 +20,7 @@ export function useSubmitArtwork() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['artworks'] });
-      queryClient.invalidateQueries({ queryKey: ['submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['allSubmissions'] });
       queryClient.invalidateQueries({ queryKey: ['mySubmissions'] });
     },
   });

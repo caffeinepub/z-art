@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-reusable-full-screen-image-viewer-lightbox-that-can-display-an-artwork-image-at-full-size-when-a-user-taps-clicks-the-image",
-      "featureTitle": "Add a reusable full-screen image viewer (lightbox) that can display an artwork image at full size when a user taps/clicks the image.",
+      "featureId": "feature-update-the-profile-setup-modal-to-allow-selecting-previewing-and-saving-an-optional-avatar-image-as-part-of-the-initial-profile-creation-context-frontend-src-components-auth-profilesetupmodal-tsx-currently-collects-name-email-and-bio-implementation-requirements-add-an-avatar-image-input-file-picker-that-accepts-images-use-the-existing-helper-frontend-src-utils-filetodataurl-ts-to-convert-the-selected-file-into-a-data-url-string-and-store-it-in-the-form-state-show-a-preview-of-the-selected-avatar-image-provide-a-clear-remove-avatar-control-to-unset-the-selected-avatar-before-submitting-on-submit-call-the-existing-save-profile-mutation-with-the-new-avatar-field-included",
+      "featureTitle": "Update the profile setup modal to allow selecting, previewing, and saving an optional avatar image as part of the initial profile creation.\n\nContext: frontend/src/components/auth/ProfileSetupModal.tsx currently collects name, email, and bio.\n\nImplementation requirements:\n- Add an avatar image input (file picker) that accepts images.\n- Use the existing helper frontend/src/utils/fileToDataUrl.ts to convert the selected file into a data URL string and store it in the form state.\n- Show a preview of the selected avatar image.\n- Provide a clear/remove avatar control to unset the selected avatar before submitting.\n- On submit, call the existing save profile mutation with the new avatar field included.",
       "files": [
-        "frontend/src/components/images/ArtworkImage.tsx",
-        "frontend/src/components/images/ArtworkLightbox.tsx"
+        "frontend/src/components/auth/ProfileSetupModal.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,15 +16,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-21"
+        "REQ-2"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-enable-tap-to-view-full-behavior-for-gallery-artwork-card-images-without-breaking-the-existing-card-navigation-to-the-artwork-details-page",
-      "featureTitle": "Enable tap-to-view-full behavior for gallery artwork card images without breaking the existing card navigation to the artwork details page.",
+      "featureId": "feature-update-the-my-profile-page-to-display-the-current-avatar-and-allow-users-to-add-change-or-remove-their-avatar-image-context-frontend-src-pages-myprofilepage-tsx-currently-supports-viewing-editing-name-email-and-bio-implementation-requirements-render-the-current-avatar-if-present-near-the-top-of-the-profile-card-add-an-image-file-picker-to-change-the-avatar-use-frontend-src-utils-filetodataurl-ts-add-a-remove-avatar-action-that-clears-the-avatar-and-saves-the-updated-profile-ensure-the-save-changes-flow-correctly-enables-disables-based-on-dirty-state-and-shows-success-error-states-consistently-with-existing-behavior",
+      "featureTitle": "Update the My Profile page to display the current avatar and allow users to add, change, or remove their avatar image.\n\nContext: frontend/src/pages/MyProfilePage.tsx currently supports viewing/editing name, email, and bio.\n\nImplementation requirements:\n- Render the current avatar (if present) near the top of the profile card.\n- Add an image file picker to change the avatar; use frontend/src/utils/fileToDataUrl.ts.\n- Add a remove avatar action that clears the avatar and saves the updated profile.\n- Ensure the Save Changes flow correctly enables/disables based on dirty state and shows success/error states consistently with existing behavior.",
       "files": [
-        "frontend/src/components/gallery/ArtworkCard.tsx"
+        "frontend/src/pages/MyProfilePage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -36,64 +35,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-22"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-enable-tap-to-view-full-behavior-for-the-main-artwork-image-on-the-artwork-details-page",
-      "featureTitle": "Enable tap-to-view-full behavior for the main artwork image on the Artwork Details page.",
-      "files": [
-        "frontend/src/pages/ArtworkDetailsPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-23"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-enable-tap-to-view-full-behavior-for-the-artwork-image-preview-used-in-the-edit-artwork-form",
-      "featureTitle": "Enable tap-to-view-full behavior for the artwork image preview used in the Edit Artwork form.",
-      "files": [
-        "frontend/src/components/artworks/EditArtworkForm.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-24"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-enable-tap-to-view-full-behavior-for-small-artwork-thumbnails-shown-in-the-admin-submissions-table",
-      "featureTitle": "Enable tap-to-view-full behavior for small artwork thumbnails shown in the admin submissions table.",
-      "files": [
-        "frontend/src/components/admin/SubmissionsTab.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-25"
+        "REQ-3"
       ],
       "confidence": "high"
     }

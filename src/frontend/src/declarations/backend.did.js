@@ -56,6 +56,7 @@ export const UserProfile = IDL.Record({
   'bio' : IDL.Text,
   'name' : IDL.Text,
   'email' : IDL.Text,
+  'avatar' : IDL.Opt(IDL.Text),
 });
 export const SubmissionResult = IDL.Record({ 'submissionId' : IDL.Nat });
 
@@ -69,6 +70,7 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'deleteArtwork' : IDL.Func([IDL.Nat], [], []),
   'editArtwork' : IDL.Func(
       [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
       [],
@@ -163,6 +165,7 @@ export const idlFactory = ({ IDL }) => {
     'bio' : IDL.Text,
     'name' : IDL.Text,
     'email' : IDL.Text,
+    'avatar' : IDL.Opt(IDL.Text),
   });
   const SubmissionResult = IDL.Record({ 'submissionId' : IDL.Nat });
   
@@ -176,6 +179,7 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'deleteArtwork' : IDL.Func([IDL.Nat], [], []),
     'editArtwork' : IDL.Func(
         [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
         [],

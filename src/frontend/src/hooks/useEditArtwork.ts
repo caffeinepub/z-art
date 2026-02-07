@@ -32,7 +32,7 @@ export function useEditArtwork() {
       // Invalidate caller's submissions (for ownership checks and embedded artwork data)
       queryClient.invalidateQueries({ queryKey: ['mySubmissions'] });
       // Invalidate admin submissions view
-      queryClient.invalidateQueries({ queryKey: ['submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['allSubmissions'] });
     },
   });
 }

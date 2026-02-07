@@ -1,22 +1,25 @@
 import Map "mo:core/Map";
 import Time "mo:core/Time";
 import Text "mo:core/Text";
-import Order "mo:core/Order";
 import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import Nat "mo:core/Nat";
-import Array "mo:core/Array";
 import Int "mo:core/Int";
+import Array "mo:core/Array";
+import Order "mo:core/Order";
+import Migration "migration";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
+// Apply migration in with clause
+(with migration = Migration.run)
 actor {
-  // User Profile Type (required by frontend)
   public type UserProfile = {
     name : Text;
     email : Text;
     bio : Text;
+    avatar : ?Text;
   };
 
   public type ArtistProfile = {
@@ -195,7 +198,7 @@ actor {
     };
   };
 
-  // New API: Edit Artwork
+  // Edit Artwork
   public shared ({ caller }) func editArtwork(
     artworkId : Nat,
     newTitle : Text,
@@ -237,7 +240,7 @@ actor {
       description = newDescription;
       imageUrl = newImageUrl;
       price = newPrice;
-      artist = existingArtwork.artist; // Keep original artist info
+      artist = existingArtwork.artist;
       createdAt = existingArtwork.createdAt;
     };
 
@@ -288,6 +291,60 @@ actor {
     inquiries.clear();
     for ((k, v) in updatedInquiries.entries()) {
       inquiries.add(k, v);
+    };
+  };
+
+  public shared ({ caller }) func deleteArtwork(artworkId : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can delete artworks");
+    };
+
+    switch (artworks.get(artworkId)) {
+      case (null) { Runtime.trap("Artwork does not exist") };
+      case (?_) {
+        // Find the submission for this artwork to verify ownership
+        var foundSubmission : ?ArtworkSubmission = null;
+        for (submission in submissions.values()) {
+          if (submission.artwork.id == artworkId) {
+            foundSubmission := ?submission;
+          };
+        };
+
+        let submission = switch (foundSubmission) {
+          case (null) { Runtime.trap("Submission not found for this artwork") };
+          case (?sub) { sub };
+        };
+
+        // Verify that the caller is the original artist who submitted the artwork or is an admin
+        if (submission.artistPrincipal != caller and not (AccessControl.isAdmin(accessControlState, caller))) {
+          Runtime.trap("Unauthorized: Only the original artist or an admin can delete this artwork");
+        };
+
+        // Remove the artwork from the artworks map
+        artworks.remove(artworkId);
+
+        // Remove all submissions related to this artwork
+        let filteredSubmissions = submissions.filter(
+          func(_id, sub) {
+            sub.artwork.id != artworkId;
+          }
+        );
+        submissions.clear();
+        for ((k, v) in filteredSubmissions.entries()) {
+          submissions.add(k, v);
+        };
+
+        // Remove all inquiries related to this artwork
+        let filteredInquiries = inquiries.filter(
+          func(_id, inquiry) {
+            inquiry.artworkId != artworkId;
+          }
+        );
+        inquiries.clear();
+        for ((k, v) in filteredInquiries.entries()) {
+          inquiries.add(k, v);
+        };
+      };
     };
   };
 

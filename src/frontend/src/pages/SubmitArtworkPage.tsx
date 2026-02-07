@@ -1,9 +1,15 @@
 import { useState } from 'react';
 import SubmitArtworkForm from '../components/submissions/SubmitArtworkForm';
 import SubmissionConfirmation from '../components/submissions/SubmissionConfirmation';
+import { clearDraft } from '../utils/submitArtworkDraft';
 
 export default function SubmitArtworkPage() {
   const [submissionId, setSubmissionId] = useState<bigint | null>(null);
+
+  const handleSuccess = (id: bigint) => {
+    clearDraft();
+    setSubmissionId(id);
+  };
 
   if (submissionId !== null) {
     return <SubmissionConfirmation submissionId={submissionId} />;
@@ -19,9 +25,8 @@ export default function SubmitArtworkPage() {
           </p>
         </div>
 
-        <SubmitArtworkForm onSuccess={setSubmissionId} />
+        <SubmitArtworkForm onSuccess={handleSuccess} />
       </div>
     </div>
   );
 }
-

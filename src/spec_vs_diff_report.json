@@ -1,54 +1,36 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-07T19:03:30.878Z",
-  "summary": "Diff adds a reusable Dialog-based lightbox component and wires image-click opening behavior in several places (gallery card, artwork details, admin submissions). However, some acceptance criteria around error-state behavior and some required integration points are not fully evidenced in the truncated diffs.",
+  "generatedAt": "2026-02-07T20:07:52.626Z",
+  "summary": "Backend UserProfile was extended with an optional avatar field and the frontend profile setup modal and My Profile page were updated to handle avatar preview/upload/removal using fileToDataUrl. A backend migration module was also added, which was not explicitly requested.",
   "missing_requirements": [
     {
-      "id": "REQ-21",
-      "requirement": "If the image cannot be displayed (invalid URL / load error), the existing user-visible image error messaging remains visible/accessible rather than showing a broken full-screen view.",
-      "reason": "The new lightbox renders a plain <img> with no error handling, and Gallery cards open the lightbox from a wrapper div regardless of whether ArtworkImage is currently showing an error state. This risks showing a broken image in the lightbox instead of preserving the existing error messaging.",
+      "id": "REQ-1",
+      "requirement": "Update the Candid interface accordingly so the frontend generated types include the new avatar field.",
+      "reason": "The diff shows the Motoko type change in backend/main.mo, but does not show any explicit Candid/interface or generated-types update; it may be automatic, but there is no direct evidence in the provided diff summary.",
       "evidence": [
-        "frontend/src/components/images/ArtworkLightbox.tsx",
-        "frontend/src/components/gallery/ArtworkCard.tsx",
-        "frontend/src/components/images/ArtworkImage.tsx"
-      ]
-    },
-    {
-      "id": "REQ-24",
-      "requirement": "Enable tap-to-view-full behavior for the artwork image preview used in the Edit Artwork form (and ensure the existing “clear new image” button remains functional and does not open the viewer when clicked).",
-      "reason": "EditArtworkForm imports ArtworkLightbox and defines state/handlers like clearNewImage(e.stopPropagation()), but the provided diff is truncated before showing the preview image wiring (click to open) and the actual lightbox rendering. Cannot confirm the requirement is implemented from the shown changes.",
-      "evidence": [
-        "frontend/src/components/artworks/EditArtworkForm.tsx"
-      ]
-    },
-    {
-      "id": "REQ-25",
-      "requirement": "In the Admin Submissions table, tapping/clicking the thumbnail opens the full-screen viewer, and the viewer can be closed and returns the user to the same scroll position/context.",
-      "reason": "SubmissionsTab adds click handling and state for a lightbox, but the diff is truncated before showing the lightbox component being rendered and wired to selectedImage/lightboxOpen. Without seeing that render, closure behavior and context preservation can’t be confirmed from the diff summary alone.",
-      "evidence": [
-        "frontend/src/components/admin/SubmissionsTab.tsx"
+        "backend/main.mo",
+        "project_state.json"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Adds keyboard activation (Enter/Space) and button-like accessibility behavior to ArtworkImage when onClick is provided.",
-      "reason": "BuildRequest only asks for tap/click-to-view and lightbox close behavior; it does not request keyboard activation on the image component itself.",
+      "description": "Added a backend state migration module and applied it via `(with migration = Migration.run)` to backfill existing profiles with `avatar = null`.",
+      "reason": "The BuildRequest did not request a migration mechanism or additional backend files; it only required extending the model and APIs.",
       "evidence": [
-        "frontend/src/components/images/ArtworkImage.tsx"
+        "backend/migration.mo",
+        "backend/main.mo"
       ]
     }
   ],
   "confidence": 0.62,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/admin/SubmissionsTab.tsx",
-    "frontend/src/components/artworks/EditArtworkForm.tsx",
-    "frontend/src/components/gallery/ArtworkCard.tsx",
-    "frontend/src/components/images/ArtworkImage.tsx",
-    "frontend/src/components/images/ArtworkLightbox.tsx",
-    "frontend/src/pages/ArtworkDetailsPage.tsx",
+    "frontend/src/components/auth/ProfileSetupModal.tsx",
+    "frontend/src/pages/MyProfilePage.tsx",
     "project_state.json"
   ]
 }

@@ -1,89 +1,39 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Tap-to-view full-size artwork images (lightbox)",
+  "title": "Profile avatar upload, preview, and management in profile flows",
   "requirements": [
     {
-      "id": "REQ-21",
-      "summary": "Add a reusable full-screen image viewer (lightbox) for artwork images with close controls and graceful error behavior.",
+      "id": "REQ-2",
+      "summary": "Add optional avatar image selection, preview, and removal to the profile setup modal, and persist it with the saved profile.",
       "acceptanceCriteria": [
-        "A user can open a full-screen/lightbox view from an artwork image without navigating away from the current page.",
-        "The full-screen view includes a clear close affordance and also closes on Escape key and backdrop click.",
-        "The full-screen view uses the same image source URL that is currently being rendered (including data URLs used for previews).",
-        "If the image cannot be displayed (invalid URL / load error), the existing user-visible image error messaging remains visible/accessible rather than showing a broken full-screen view.",
-        "User-facing text (if any) is in English."
+        "Profile setup modal allows choosing an image file and shows a preview.",
+        "Invalid file types and files over 5MB show a user-friendly error (using existing fileToDataUrl validations).",
+        "User can remove an avatar selection before saving.",
+        "Submitting the modal successfully persists the avatar together with name/email/bio."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/images/ArtworkLightbox.tsx",
-          "operation": "create",
-          "description": "Create a reusable lightbox component that renders a full-screen modal using existing shadcn/ui primitives (e.g., Dialog) with backdrop-click and Escape-to-close behavior, a visible close affordance, and an object-contain image that scales to fit the viewport while preserving aspect ratio. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/images/ArtworkImage.tsx",
+          "path": "frontend/src/components/auth/ProfileSetupModal.tsx",
           "operation": "modify",
-          "description": "Extend the existing image component to support an optional click handler (and appropriate a11y/cursor affordance) that only activates when an actual <img> is rendered (i.e., do not enable opening the lightbox when the component is in its error state so existing user-visible error messaging remains accessible). Verify the component's usage instructions before implementing."
+          "description": "Extend the modal form state to include an optional avatar field; add an image file input that uses frontend/src/utils/fileToDataUrl.ts to validate/convert to a data URL, render a preview, and provide a clear/remove action that unsets the avatar before submit. Update submit payload to include avatar along with name/email/bio when calling the existing save profile mutation."
         }
       ]
     },
     {
-      "id": "REQ-22",
-      "summary": "Enable tap-to-view-full on Gallery artwork card images without breaking card navigation to details.",
+      "id": "REQ-3",
+      "summary": "Display the current avatar on My Profile and allow users to add/change/remove it with consistent dirty-state and save feedback behavior.",
       "acceptanceCriteria": [
-        "On Gallery cards, tapping/clicking the artwork image opens the full-screen viewer.",
-        "On Gallery cards, tapping/clicking outside the image area (e.g., title/price or card background) continues to navigate to the artwork details route as it does today.",
-        "Opening the full-screen viewer from an image does not trigger the card’s navigation click handler."
+        "If a user has an avatar saved, it is displayed on My Profile.",
+        "User can upload a new avatar image, preview it, and save it; after save, the avatar persists on refresh.",
+        "User can remove the avatar and save; after save, the avatar no longer displays and remains removed on refresh.",
+        "All avatar upload errors are shown as English user-facing text and do not break the existing profile edit flow."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/gallery/ArtworkCard.tsx",
+          "path": "frontend/src/pages/MyProfilePage.tsx",
           "operation": "modify",
-          "description": "Wire the lightbox into Gallery cards: clicking the image area opens ArtworkLightbox with the exact same src currently passed to the rendered image, and stops propagation/prevents default so the Card onClick navigation does not fire; clicks elsewhere on the card continue to navigate. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-23",
-      "summary": "Enable tap-to-view-full on the main artwork image on the Artwork Details page.",
-      "acceptanceCriteria": [
-        "On the Artwork Details page, tapping/clicking the main artwork image opens the full-screen viewer.",
-        "The full-screen viewer shows the artwork image scaled to fit the viewport while preserving aspect ratio."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/ArtworkDetailsPage.tsx",
-          "operation": "modify",
-          "description": "Add local open/close state and render ArtworkLightbox; make the main ArtworkImage clickable to open the viewer using the exact artwork.imageUrl currently rendered, without navigating away. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-24",
-      "summary": "Enable tap-to-view-full on the artwork image preview in the Edit Artwork form while keeping 'clear new image' working.",
-      "acceptanceCriteria": [
-        "In the Edit Artwork form, tapping/clicking the preview image opens the full-screen viewer using the current preview (including a newly uploaded data URL preview).",
-        "The existing “clear new image” button remains functional and does not open the viewer when clicked."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/artworks/EditArtworkForm.tsx",
-          "operation": "modify",
-          "description": "Render ArtworkLightbox and open it when the preview ArtworkImage is clicked, using the current imagePreview value (including data URL previews). Ensure the 'clear new image' button stops propagation so it does not trigger the viewer while remaining functional. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-25",
-      "summary": "Enable tap-to-view-full on artwork thumbnails in the admin submissions table and preserve user context on close.",
-      "acceptanceCriteria": [
-        "In the Admin Submissions table, tapping/clicking the thumbnail opens the full-screen viewer.",
-        "The viewer can be closed and returns the user to the same scroll position/context in the admin table."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/admin/SubmissionsTab.tsx",
-          "operation": "modify",
-          "description": "Add per-row (or shared) lightbox open/close state and make the submission thumbnail clickable to open ArtworkLightbox with the same submission.artwork.imageUrl currently rendered; ensure close restores the same admin table context (no navigation). Verify the component's usage instructions before implementing."
+          "description": "Render the current avatar (if present) near the top of the profile card; add an image file picker to change the avatar using frontend/src/utils/fileToDataUrl.ts with preview and user-friendly error display; add a remove-avatar action that clears the avatar and includes the cleared avatar in the saved profile. Ensure dirty-state and Save Changes enable/disable logic accounts for avatar changes (add/change/remove) and that success/error states remain consistent with existing behavior."
         }
       ]
     }

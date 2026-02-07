@@ -1,14 +1,18 @@
 import { Link, useNavigate } from '@tanstack/react-router';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import LoginButton from '../auth/LoginButton';
 import { useAuthz } from '../../hooks/useAuthz';
+import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 
 export default function SiteHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { isAdmin } = useAuthz();
+  const { identity } = useInternetIdentity();
+
+  const isAuthenticated = !!identity;
 
   const navLinks = [
     { label: 'Home', path: '/' },
@@ -42,6 +46,16 @@ export default function SiteHeader() {
                 {link.label}
               </Button>
             ))}
+            {isAuthenticated && (
+              <Button
+                variant="ghost"
+                onClick={() => navigate({ to: '/profile' })}
+                className="text-sm font-medium"
+              >
+                <User className="mr-2 h-4 w-4" />
+                My Profile
+              </Button>
+            )}
             {isAdmin && (
               <Button
                 variant="ghost"
@@ -85,6 +99,19 @@ export default function SiteHeader() {
                 {link.label}
               </Button>
             ))}
+            {isAuthenticated && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  navigate({ to: '/profile' });
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full justify-start text-sm font-medium"
+              >
+                <User className="mr-2 h-4 w-4" />
+                My Profile
+              </Button>
+            )}
             {isAdmin && (
               <Button
                 variant="ghost"
@@ -106,4 +133,3 @@ export default function SiteHeader() {
     </header>
   );
 }
-

@@ -52,6 +52,7 @@ export interface UserProfile {
   'bio' : string,
   'name' : string,
   'email' : string,
+  'avatar' : [] | [string],
 }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
@@ -65,6 +66,7 @@ export interface _SERVICE {
     [bigint, string, string, string],
     undefined
   >,
+  'deleteArtwork' : ActorMethod<[bigint], undefined>,
   'editArtwork' : ActorMethod<
     [bigint, string, string, string, bigint],
     undefined

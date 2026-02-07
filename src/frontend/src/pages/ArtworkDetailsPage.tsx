@@ -2,13 +2,25 @@ import { useState } from 'react';
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { useArtworkById } from '../hooks/useArtworks';
 import { useMySubmissions } from '../hooks/useMySubmissions';
+import { useDeleteArtwork } from '../hooks/useDeleteArtwork';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, User, Edit } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { ArrowLeft, Loader2, User, Edit, Trash2 } from 'lucide-react';
 import PurchaseInquiryDialog from '../components/inquiries/PurchaseInquiryDialog';
 import ArtworkImage from '../components/images/ArtworkImage';
 import ArtworkLightbox from '../components/images/ArtworkLightbox';
 import { formatGBP } from '../utils/gbpMoney';
+import { toast } from 'sonner';
 
 export default function ArtworkDetailsPage() {
   const { artworkId } = useParams({ from: '/artwork/$artworkId' });
@@ -16,13 +28,28 @@ export default function ArtworkDetailsPage() {
   const { identity } = useInternetIdentity();
   const { data: artwork, isLoading } = useArtworkById(BigInt(artworkId));
   const { data: mySubmissions } = useMySubmissions();
+  const deleteArtwork = useDeleteArtwork();
   const [inquiryDialogOpen, setInquiryDialogOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Check if the current user owns this artwork
   const isOwner = identity && mySubmissions?.some(
     (submission) => submission.artwork.id === artwork?.id
   );
+
+  const handleDelete = async () => {
+    if (!artwork) return;
+
+    try {
+      await deleteArtwork.mutateAsync(artwork.id);
+      toast.success('Artwork deleted successfully');
+      navigate({ to: '/gallery' });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete artwork');
+      setDeleteDialogOpen(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -97,13 +124,28 @@ export default function ArtworkDetailsPage() {
 
           <div className="flex gap-3 mt-auto pt-6">
             {isOwner ? (
-              <Button
-                onClick={() => navigate({ to: '/artwork/$artworkId/edit', params: { artworkId: String(artwork.id) } })}
-                className="flex-1"
-              >
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Artwork
-              </Button>
+              <>
+                <Button
+                  onClick={() => navigate({ to: '/artwork/$artworkId/edit', params: { artworkId: String(artwork.id) } })}
+                  className="flex-1"
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Artwork
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => setDeleteDialogOpen(true)}
+                  disabled={deleteArtwork.isPending}
+                  className="flex-1"
+                >
+                  {deleteArtwork.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="mr-2 h-4 w-4" />
+                  )}
+                  Delete
+                </Button>
+              </>
             ) : (
               <Button onClick={() => setInquiryDialogOpen(true)} className="flex-1">
                 Inquire to Purchase
@@ -125,6 +167,35 @@ export default function ArtworkDetailsPage() {
         open={lightboxOpen}
         onOpenChange={setLightboxOpen}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Artwork</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{artwork.title}"? This action cannot be undone. 
+              All associated submissions and purchase inquiries will also be removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteArtwork.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteArtwork.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteArtwork.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

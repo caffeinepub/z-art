@@ -1,106 +1,75 @@
 {
   "kind": "build_request",
-  "title": "Add tap-to-view full-size artwork images (lightbox)",
+  "title": "Add profile avatar image upload and display",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-21",
-      "text": "Add a reusable full-screen image viewer (lightbox) that can display an artwork image at full size when a user taps/clicks the image.",
-      "target": "frontend",
+      "id": "REQ-1",
+      "text": "Extend the backend user profile model to store an optional avatar image and include it in all user profile read/write APIs.\n\nContext: backend/main.mo currently defines UserProfile as { name; email; bio } and exposes getCallerUserProfile, getUserProfile, and saveCallerUserProfile.\n\nImplementation requirements:\n- Add an optional field on UserProfile for the avatar image (e.g., a data URL string) so users can have no avatar.\n- Update the Candid interface accordingly so the frontend generated types include the new field.\n- Ensure getCallerUserProfile/getUserProfile return the avatar value and saveCallerUserProfile persists it.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-1"
         ],
         "quotes": [
-          "When images are tapped display fully"
+          "Allow users to add an avatar or image on profile"
         ]
       },
       "acceptanceCriteria": [
-        "A user can open a full-screen/lightbox view from an artwork image without navigating away from the current page.",
-        "The full-screen view includes a clear close affordance and also closes on Escape key and backdrop click.",
-        "The full-screen view uses the same image source URL that is currently being rendered (including data URLs used for previews).",
-        "If the image cannot be displayed (invalid URL / load error), the existing user-visible image error messaging remains visible/accessible rather than showing a broken full-screen view.",
-        "User-facing text (if any) is in English."
+        "Backend UserProfile type includes an optional avatar field and compiles successfully.",
+        "saveCallerUserProfile accepts and stores the avatar field (including null/no avatar).",
+        "getCallerUserProfile and getUserProfile return the stored avatar value unchanged.",
+        "Existing authorization behavior for profile APIs remains unchanged."
       ]
     },
     {
-      "id": "REQ-22",
-      "text": "Enable tap-to-view-full behavior for gallery artwork card images without breaking the existing card navigation to the artwork details page.",
+      "id": "REQ-2",
+      "text": "Update the profile setup modal to allow selecting, previewing, and saving an optional avatar image as part of the initial profile creation.\n\nContext: frontend/src/components/auth/ProfileSetupModal.tsx currently collects name, email, and bio.\n\nImplementation requirements:\n- Add an avatar image input (file picker) that accepts images.\n- Use the existing helper frontend/src/utils/fileToDataUrl.ts to convert the selected file into a data URL string and store it in the form state.\n- Show a preview of the selected avatar image.\n- Provide a clear/remove avatar control to unset the selected avatar before submitting.\n- On submit, call the existing save profile mutation with the new avatar field included.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-1"
         ],
         "quotes": [
-          "When images are tapped display fully"
+          "Allow users to add an avatar or image on profile"
         ]
       },
       "acceptanceCriteria": [
-        "On Gallery cards, tapping/clicking the artwork image opens the full-screen viewer.",
-        "On Gallery cards, tapping/clicking outside the image area (e.g., title/price or card background) continues to navigate to the artwork details route as it does today.",
-        "Opening the full-screen viewer from an image does not trigger the card’s navigation click handler."
+        "Profile setup modal allows choosing an image file and shows a preview.",
+        "Invalid file types and files over 5MB show a user-friendly error (using existing fileToDataUrl validations).",
+        "User can remove an ընտ avatar selection before saving.",
+        "Submitting the modal successfully persists the avatar together with name/email/bio."
       ]
     },
     {
-      "id": "REQ-23",
-      "text": "Enable tap-to-view-full behavior for the main artwork image on the Artwork Details page.",
+      "id": "REQ-3",
+      "text": "Update the My Profile page to display the current avatar and allow users to add, change, or remove their avatar image.\n\nContext: frontend/src/pages/MyProfilePage.tsx currently supports viewing/editing name, email, and bio.\n\nImplementation requirements:\n- Render the current avatar (if present) near the top of the profile card.\n- Add an image file picker to change the avatar; use frontend/src/utils/fileToDataUrl.ts.\n- Add a remove avatar action that clears the avatar and saves the updated profile.\n- Ensure the Save Changes flow correctly enables/disables based on dirty state and shows success/error states consistently with existing behavior.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-1"
         ],
         "quotes": [
-          "When images are tapped display fully"
+          "Allow users to add an avatar or image on profile"
         ]
       },
       "acceptanceCriteria": [
-        "On the Artwork Details page, tapping/clicking the main artwork image opens the full-screen viewer.",
-        "The full-screen viewer shows the artwork image scaled to fit the viewport while preserving aspect ratio."
-      ]
-    },
-    {
-      "id": "REQ-24",
-      "text": "Enable tap-to-view-full behavior for the artwork image preview used in the Edit Artwork form.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-3"
-        ],
-        "quotes": [
-          "When images are tapped display fully"
-        ]
-      },
-      "acceptanceCriteria": [
-        "In the Edit Artwork form, tapping/clicking the preview image opens the full-screen viewer using the current preview (including a newly uploaded data URL preview).",
-        "The existing “clear new image” button remains functional and does not open the viewer when clicked."
-      ]
-    },
-    {
-      "id": "REQ-25",
-      "text": "Enable tap-to-view-full behavior for small artwork thumbnails shown in the admin submissions table.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-3"
-        ],
-        "quotes": [
-          "When images are tapped display fully"
-        ]
-      },
-      "acceptanceCriteria": [
-        "In the Admin Submissions table, tapping/clicking the thumbnail opens the full-screen viewer.",
-        "The viewer can be closed and returns the user to the same scroll position/context in the admin table."
+        "If a user has an avatar saved, it is displayed on My Profile.",
+        "User can upload a new avatar image, preview it, and save it; after save, the avatar persists on refresh.",
+        "User can remove the avatar and save; after save, the avatar no longer displays and remains removed on refresh.",
+        "All avatar upload errors are shown as English user-facing text and do not break the existing profile edit flow."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/components/ui (read-only); compose existing UI primitives (e.g., Dialog) instead.",
-    "Keep backend as a single Motoko actor; this change should not require backend modifications."
+    "Backend must remain a single Motoko actor in backend/main.mo.",
+    "Do not modify files under frontend/src/components/ui or any other immutable paths listed in SYSTEM_CONTEXT.",
+    "No external databases or third-party storage integrations; avatar must be stored using existing project capabilities."
   ],
   "nonGoals": [
-    "Implementing image download, sharing, or advanced zoom/pan controls.",
-    "Changing how artwork image URLs are stored or validated in the backend.",
-    "Adding new image generation assets for this feature."
+    "Implementing image CDN hosting, chunked uploads, or server-side image resizing.",
+    "Adding avatar support to artist profiles or artwork submissions unless required for profile avatar functionality.",
+    "Adding third-party authentication providers (only Internet Identity is supported)."
   ],
   "imageRequirements": {
     "required": [],

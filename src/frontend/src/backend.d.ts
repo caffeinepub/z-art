@@ -41,6 +41,7 @@ export interface UserProfile {
     bio: string;
     name: string;
     email: string;
+    avatar?: string;
 }
 export interface ArtistProfile {
     id: bigint;
@@ -64,6 +65,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createArtistProfile(name: string, bio: string, website: string): Promise<void>;
     createPurchaseInquiry(artworkId: bigint, buyerName: string, buyerEmail: string, message: string): Promise<void>;
+    deleteArtwork(artworkId: bigint): Promise<void>;
     editArtwork(artworkId: bigint, newTitle: string, newDescription: string, newImageUrl: string, newPrice: bigint): Promise<void>;
     getAllPurchaseInquiries(): Promise<Array<PurchaseInquiry>>;
     getAllSubmissions(): Promise<Array<ArtworkSubmission>>;
