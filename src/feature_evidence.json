@@ -1,0 +1,101 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-add-a-reusable-full-screen-image-viewer-lightbox-that-can-display-an-artwork-image-at-full-size-when-a-user-taps-clicks-the-image",
+      "featureTitle": "Add a reusable full-screen image viewer (lightbox) that can display an artwork image at full size when a user taps/clicks the image.",
+      "files": [
+        "frontend/src/components/images/ArtworkImage.tsx",
+        "frontend/src/components/images/ArtworkLightbox.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-21"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-enable-tap-to-view-full-behavior-for-gallery-artwork-card-images-without-breaking-the-existing-card-navigation-to-the-artwork-details-page",
+      "featureTitle": "Enable tap-to-view-full behavior for gallery artwork card images without breaking the existing card navigation to the artwork details page.",
+      "files": [
+        "frontend/src/components/gallery/ArtworkCard.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-22"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-enable-tap-to-view-full-behavior-for-the-main-artwork-image-on-the-artwork-details-page",
+      "featureTitle": "Enable tap-to-view-full behavior for the main artwork image on the Artwork Details page.",
+      "files": [
+        "frontend/src/pages/ArtworkDetailsPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-23"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-enable-tap-to-view-full-behavior-for-the-artwork-image-preview-used-in-the-edit-artwork-form",
+      "featureTitle": "Enable tap-to-view-full behavior for the artwork image preview used in the Edit Artwork form.",
+      "files": [
+        "frontend/src/components/artworks/EditArtworkForm.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-24"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-enable-tap-to-view-full-behavior-for-small-artwork-thumbnails-shown-in-the-admin-submissions-table",
+      "featureTitle": "Enable tap-to-view-full behavior for small artwork thumbnails shown in the admin submissions table.",
+      "files": [
+        "frontend/src/components/admin/SubmissionsTab.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-25"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

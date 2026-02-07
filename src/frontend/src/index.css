@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --radius: 0.25rem;
+        /* Warm gallery whites and creams */
+        --background: 0.98 0.01 60;
+        --foreground: 0.25 0.02 30;
+        --card: 1 0.005 60;
+        --card-foreground: 0.25 0.02 30;
+        --popover: 1 0.005 60;
+        --popover-foreground: 0.25 0.02 30;
+        /* Rich terracotta primary */
+        --primary: 0.55 0.15 35;
+        --primary-foreground: 0.98 0.01 60;
+        /* Warm taupe secondary */
+        --secondary: 0.88 0.015 50;
+        --secondary-foreground: 0.25 0.02 30;
+        --muted: 0.92 0.01 55;
+        --muted-foreground: 0.50 0.02 30;
+        /* Deep ochre accent */
+        --accent: 0.65 0.12 70;
+        --accent-foreground: 0.98 0.01 60;
+        --destructive: 0.55 0.20 25;
+        --destructive-foreground: 0.98 0.01 60;
+        --border: 0.88 0.015 50;
+        --input: 0.88 0.015 50;
+        --ring: 0.55 0.15 35;
+        --chart-1: 0.55 0.15 35;
+        --chart-2: 0.65 0.12 70;
+        --chart-3: 0.45 0.10 180;
+        --chart-4: 0.60 0.08 120;
+        --chart-5: 0.70 0.10 320;
+    }
+
+    .dark {
+        /* Deep charcoal gallery background */
+        --background: 0.18 0.01 30;
+        --foreground: 0.95 0.01 60;
+        --card: 0.22 0.015 30;
+        --card-foreground: 0.95 0.01 60;
+        --popover: 0.20 0.015 30;
+        --popover-foreground: 0.95 0.01 60;
+        /* Warm copper primary */
+        --primary: 0.65 0.15 35;
+        --primary-foreground: 0.98 0.01 60;
+        /* Muted warm gray secondary */
+        --secondary: 0.30 0.02 40;
+        --secondary-foreground: 0.95 0.01 60;
+        --muted: 0.28 0.02 35;
+        --muted-foreground: 0.65 0.02 50;
+        /* Golden accent */
+        --accent: 0.70 0.12 70;
+        --accent-foreground: 0.18 0.01 30;
+        --destructive: 0.60 0.20 25;
+        --destructive-foreground: 0.95 0.01 60;
+        --border: 0.30 0.02 40;
+        --input: 0.30 0.02 40;
+        --ring: 0.65 0.15 35;
+        --chart-1: 0.65 0.15 35;
+        --chart-2: 0.70 0.12 70;
+        --chart-3: 0.55 0.10 180;
+        --chart-4: 0.65 0.08 120;
+        --chart-5: 0.75 0.10 320;
+    }
+
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings: "kern" 1, "liga" 1;
+    }
+}
+
+@layer components {
+    .gallery-grid {
+        @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6;
+    }
+    
+    .artwork-card-hover {
+        @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+    }
+}
+

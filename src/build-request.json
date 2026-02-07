@@ -1,0 +1,109 @@
+{
+  "kind": "build_request",
+  "title": "Add tap-to-view full-size artwork images (lightbox)",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-21",
+      "text": "Add a reusable full-screen image viewer (lightbox) that can display an artwork image at full size when a user taps/clicks the image.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "When images are tapped display fully"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A user can open a full-screen/lightbox view from an artwork image without navigating away from the current page.",
+        "The full-screen view includes a clear close affordance and also closes on Escape key and backdrop click.",
+        "The full-screen view uses the same image source URL that is currently being rendered (including data URLs used for previews).",
+        "If the image cannot be displayed (invalid URL / load error), the existing user-visible image error messaging remains visible/accessible rather than showing a broken full-screen view.",
+        "User-facing text (if any) is in English."
+      ]
+    },
+    {
+      "id": "REQ-22",
+      "text": "Enable tap-to-view-full behavior for gallery artwork card images without breaking the existing card navigation to the artwork details page.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "When images are tapped display fully"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On Gallery cards, tapping/clicking the artwork image opens the full-screen viewer.",
+        "On Gallery cards, tapping/clicking outside the image area (e.g., title/price or card background) continues to navigate to the artwork details route as it does today.",
+        "Opening the full-screen viewer from an image does not trigger the card’s navigation click handler."
+      ]
+    },
+    {
+      "id": "REQ-23",
+      "text": "Enable tap-to-view-full behavior for the main artwork image on the Artwork Details page.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "When images are tapped display fully"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On the Artwork Details page, tapping/clicking the main artwork image opens the full-screen viewer.",
+        "The full-screen viewer shows the artwork image scaled to fit the viewport while preserving aspect ratio."
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "text": "Enable tap-to-view-full behavior for the artwork image preview used in the Edit Artwork form.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "When images are tapped display fully"
+        ]
+      },
+      "acceptanceCriteria": [
+        "In the Edit Artwork form, tapping/clicking the preview image opens the full-screen viewer using the current preview (including a newly uploaded data URL preview).",
+        "The existing “clear new image” button remains functional and does not open the viewer when clicked."
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "text": "Enable tap-to-view-full behavior for small artwork thumbnails shown in the admin submissions table.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "When images are tapped display fully"
+        ]
+      },
+      "acceptanceCriteria": [
+        "In the Admin Submissions table, tapping/clicking the thumbnail opens the full-screen viewer.",
+        "The viewer can be closed and returns the user to the same scroll position/context in the admin table."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify files under frontend/src/components/ui (read-only); compose existing UI primitives (e.g., Dialog) instead.",
+    "Keep backend as a single Motoko actor; this change should not require backend modifications."
+  ],
+  "nonGoals": [
+    "Implementing image download, sharing, or advanced zoom/pan controls.",
+    "Changing how artwork image URLs are stored or validated in the backend.",
+    "Adding new image generation assets for this feature."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

@@ -1,0 +1,266 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 15,
+  "summary": "Build an artists gallery website named \"Z'art\" to display artwork and commercialize artist submissions.",
+  "architectural_notes": [
+    "Add user account/profile creation flow for non-admin users (in addition to artist profile data model).",
+    "Support artwork file uploads (image storage + metadata) tied to the uploading user/artist profile.",
+    "In user/artist profile creation, make the \"website\" field optional (not a required field); update validation and UI accordingly.",
+    "Add an edit-artwork flow (UI + backend API) with authorization so only the submitting user/artist (or admin) can modify an artwork’s image and metadata.",
+    "Add currency support for artwork pricing, including GBP as an allowed/displayed currency (ensure consistent formatting across gallery, artwork details, submission/edit forms, and inquiries).",
+    "Add image loading error handling in the UI (onError fallbacks) to surface a clear reason/state when an image cannot be displayed.",
+    "Add a full-screen/lightbox image viewer for tapped artwork images (e.g., from gallery cards and artwork detail pages)."
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-create-the-core-site-structure-and-navigation-for-an-artists-gallery-website-named-z-art-with-public-pages-for-home-gallery-browse-artworks-artwork-details-artists-browse-artist-profile-and-a-submit-artwork-page",
+      "title": "Create the core site structure and navigation for an artists gallery website named \"Z'art\" with public pages for: Home, Gallery (browse artworks), Artwork details, Artists (browse), Artist profile, and a Submit Artwork page.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-the-gallery-ui-to-display-artworks-with-filtering-sorting-at-minimum-by-category-tag-and-by-price-and-a-details-view-that-includes-artwork-images-description-artist-info-and-price",
+      "title": "Build the Gallery UI to display artworks with filtering/sorting (at minimum: by category/tag and by price) and a details view that includes artwork images, description, artist info, and price.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-submission-flow-for-artists-to-propose-artworks-for-commercialization-including-a-form-client-side-validation-submission-confirmation-and-a-submission-status-indicator-e-g-pending-approved-rejected",
+      "title": "Add a submission flow for artists to propose artworks for commercialization, including a form, client-side validation, submission confirmation, and a “submission status” indicator (e.g., Pending/Approved/Rejected).",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-provide-a-basic-commercialization-mechanism-allow-visitors-to-initiate-a-purchase-inquiry-for-an-artwork-without-requiring-external-payment-providers-and-store-inquiries-in-the-backend-tied-to-the-selected-artwork",
+      "title": "Provide a basic commercialization mechanism: allow visitors to initiate a purchase inquiry for an artwork (without requiring external payment providers) and store inquiries in the backend tied to the selected artwork.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-authentication-using-internet-identity-for-privileged-actions-viewing-and-managing-submissions-and-inquiries-in-an-owner-admin-dashboard",
+      "title": "Add authentication using Internet Identity for privileged actions: viewing and managing submissions and inquiries in an owner/admin dashboard.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-design-and-apply-a-coherent-visual-theme-for-z-art-suitable-for-an-art-gallery-distinct-color-palette-typography-spacing-and-component-styling-and-enforce-it-consistently-across-all-pages",
+      "title": "Design and apply a coherent visual theme for Z'art suitable for an art gallery (distinct color palette, typography, spacing, and component styling) and enforce it consistently across all pages.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-generate-and-include-required-static-images-as-app-assets-under-frontend-public-assets-generated-and-render-them-in-the-ui",
+      "title": "Generate and include required static images as app assets under frontend/public/assets/generated and render them in the UI.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-self-serve-artist-profile-creation-flow-for-authenticated-users-so-a-new-user-can-create-their-own-artist-profile-name-bio-website-without-contacting-an-administrator-and-the-app-uses-that-profile-for-subsequent-artwork-submissions",
+      "title": "Add a self-serve artist profile creation flow for authenticated users so a new user can create their own artist profile (name, bio, website) without contacting an administrator, and the app uses that profile for subsequent artwork submissions.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-an-artwork-image-upload-option-in-the-submission-form-so-users-can-upload-an-image-file-from-their-device-convert-it-to-a-browser-renderable-url-e-g-a-data-url-and-submit-it-to-the-backend-as-the-artwork-imageurl",
+      "title": "Implement an artwork image upload option in the submission form so users can upload an image file from their device, convert it to a browser-renderable URL (e.g., a data URL), and submit it to the backend as the artwork imageUrl.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-backend-submitartwork-api-and-the-frontend-submission-flow-to-return-and-use-a-real-submission-identifier-so-the-submission-confirmation-view-can-display-accurate-information-for-the-newly-created-submission",
+      "title": "Update the backend submitArtwork API and the frontend submission flow to return and use a real submission identifier so the submission confirmation view can display accurate information for the newly created submission.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-artist-profile-creation-form-so-the-website-field-is-optional-not-required-if-a-website-is-provided-it-must-still-be-validated-as-a-url-if-left-blank-the-form-must-submit-successfully-and-store-an-empty-website-value",
+      "title": "Update the artist profile creation form so the Website field is optional (not required). If a website is provided, it must still be validated as a URL; if left blank, the form must submit successfully and store an empty website value.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-expose-a-frontend-editing-ui-that-lets-a-logged-in-user-edit-a-previously-uploaded-artwork-s-image-and-details-title-description-price-using-the-same-image-upload-to-data-url-approach-as-the-submission-form",
+      "title": "Expose a frontend editing UI that lets a logged-in user edit a previously uploaded artwork’s image and details (title, description, price) using the same image upload-to-data-URL approach as the submission form.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hooks-mutations-for-updating-artworks-and-ensure-relevant-cached-queries-are-invalidated-refetched-after-an-update",
+      "title": "Add React Query hooks/mutations for updating artworks and ensure relevant cached queries are invalidated/refetched after an update.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-treat-all-artwork-prices-as-british-pounds-gbp-and-update-all-user-facing-currency-labels-from-usd-to-gbp-across-the-app-including-submit-artwork-form-edit-artwork-form-gallery-artwork-cards-artwork-details-page-and-admin-tables-for-submissions-and-inquiries",
+      "title": "Treat all artwork prices as British Pounds (GBP) and update all user-facing currency labels from USD/$ to GBP/£ across the app, including: Submit Artwork form, Edit Artwork form, Gallery artwork cards, Artwork details page, and Admin tables for submissions and inquiries.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-consistent-gbp-price-formatting-and-parsing-across-the-ui-so-that-the-stored-integer-price-minor-units-is-displayed-as-pounds-with-two-decimal-places-and-thousands-separators-and-numeric-sorting-by-price-continues-to-work-correctly",
+      "title": "Implement consistent GBP price formatting and parsing across the UI so that the stored integer price (minor units) is displayed as pounds with two decimal places and thousands separators, and numeric sorting by price continues to work correctly.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-reusable-frontend-image-component-or-shared-utility-pattern-that-detects-img-load-failures-and-displays-a-user-visible-explanation-when-an-artwork-image-cannot-be-displayed",
+      "title": "Add a reusable frontend image component (or shared utility pattern) that detects <img> load failures and displays a user-visible explanation when an artwork image cannot be displayed.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-use-the-new-image-failure-handling-across-all-user-visible-artwork-image-renderings-at-minimum-gallery-artwork-cards-and-the-artwork-details-page-also-any-edit-preview-image-blocks-that-render-an-img-from-a-url-so-users-consistently-see-a-reason-when-an-artwork-image-fails-to-load",
+      "title": "Use the new image-failure handling across all user-visible artwork image renderings (at minimum: Gallery artwork cards and the Artwork Details page; also any edit/preview image blocks that render an <img> from a URL) so users consistently see a reason when an artwork image fails to load.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-reusable-full-screen-image-viewer-lightbox-that-can-display-an-artwork-image-at-full-size-when-a-user-taps-clicks-the-image",
+      "title": "Add a reusable full-screen image viewer (lightbox) that can display an artwork image at full size when a user taps/clicks the image.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enable-tap-to-view-full-behavior-for-gallery-artwork-card-images-without-breaking-the-existing-card-navigation-to-the-artwork-details-page",
+      "title": "Enable tap-to-view-full behavior for gallery artwork card images without breaking the existing card navigation to the artwork details page.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enable-tap-to-view-full-behavior-for-the-main-artwork-image-on-the-artwork-details-page",
+      "title": "Enable tap-to-view-full behavior for the main artwork image on the Artwork Details page.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enable-tap-to-view-full-behavior-for-the-artwork-image-preview-used-in-the-edit-artwork-form",
+      "title": "Enable tap-to-view-full behavior for the artwork image preview used in the Edit Artwork form.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enable-tap-to-view-full-behavior-for-small-artwork-thumbnails-shown-in-the-admin-submissions-table",
+      "title": "Enable tap-to-view-full behavior for small artwork thumbnails shown in the admin submissions table.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Create \"Z'art\" artists gallery website to display artwork",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Enable commercialization/monetization of artist submissions",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Implement backend data models and APIs to support: artist profiles, artworks, and artwork submissions intended for commercialization.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Allow new users to create profiles (accounts) and upload artwork to the gallery",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Allow users to edit previously uploaded artwork (image and details/metadata) after submission",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Add a backend API that allows an authenticated user to update an existing artwork they originally submitted, including title, description, imageUrl, and price.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Ensure artwork edits remain consistent across backend data structures by updating any stored submission records that embed the artwork object when the corresponding artwork is edited.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Support pricing in GBP (display and input prices in British Pounds for artworks and related purchase inquiries).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "If artwork/static images fail to load in the UI, display a user-visible reason/error state (e.g., broken link, network error, missing asset).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Enable tapping artwork images to view them fully (e.g., full-screen/lightbox view)",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Z'art",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}
