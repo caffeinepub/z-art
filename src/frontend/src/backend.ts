@@ -164,6 +164,7 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     rejectSubmission(submissionId: bigint): Promise<void>;
+    replaceDataset(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     submitArtwork(title: string, description: string, imageUrl: string, price: bigint): Promise<SubmissionResult>;
 }
@@ -461,6 +462,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.rejectSubmission(arg0);
+            return result;
+        }
+    }
+    async replaceDataset(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.replaceDataset();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.replaceDataset();
             return result;
         }
     }

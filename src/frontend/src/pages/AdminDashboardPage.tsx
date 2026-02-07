@@ -1,6 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import SubmissionsTab from '../components/admin/SubmissionsTab';
 import InquiriesTab from '../components/admin/InquiriesTab';
+import ReplaceDatasetControl from '../components/admin/ReplaceDatasetControl';
 
 export default function AdminDashboardPage() {
   return (
@@ -11,6 +13,12 @@ export default function AdminDashboardPage() {
           Manage artwork submissions and purchase inquiries
         </p>
       </div>
+
+      <div className="mb-8">
+        <ReplaceDatasetControl />
+      </div>
+
+      <Separator className="my-8" />
 
       <Tabs defaultValue="submissions" className="space-y-6">
         <TabsList>
@@ -29,4 +37,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-

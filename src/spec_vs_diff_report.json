@@ -1,36 +1,64 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-07T20:07:52.626Z",
-  "summary": "Backend UserProfile was extended with an optional avatar field and the frontend profile setup modal and My Profile page were updated to handle avatar preview/upload/removal using fileToDataUrl. A backend migration module was also added, which was not explicitly requested.",
+  "generatedAt": "2026-02-07T21:07:57.427Z",
+  "summary": "Diff adds a new backend/migration.mo module and wires it into backend/main.mo via a Motoko “with migration = Migration.run” pattern, but the provided diff summary does not show any stable variables, preupgrade/postupgrade hooks, or schema/version guarding needed for upgrade-safe persistence. Also, adding backend/migration.mo appears to violate the constraint that all backend logic must remain in backend/main.mo as a single-actor canister.",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "Update the Candid interface accordingly so the frontend generated types include the new avatar field.",
-      "reason": "The diff shows the Motoko type change in backend/main.mo, but does not show any explicit Candid/interface or generated-types update; it may be automatic, but there is no direct evidence in the provided diff summary.",
+      "id": "REQ-6",
+      "requirement": "Add full upgrade-safe stable-memory persistence so user profiles, artist profiles, artworks, submissions, inquiries, and all ID counters survive canister upgrades (no data loss).",
+      "reason": "The diff summary shows only in-memory `var` Maps and counters in backend/main.mo, with no evidence of stable storage and restore logic that would preserve state across upgrades.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "requirement": "Implement upgrade-safe serialization/deserialization by snapshotting Maps and counters to stable variables in preupgrade and restoring them in postupgrade (or equivalent pattern), initializing cleanly on fresh install.",
+      "reason": "No stable variables representing snapshots are shown, and no `system func preupgrade` / `system func postupgrade` (or equivalent stable rehydration) is evidenced in the diff summary.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "requirement": "Add a schema/version guard for stable state and a conditional migration path for future state-shape changes, preserving existing data (including nullable UserProfile.avatar).",
+      "reason": "No stable schema/version marker is shown being stored/checked during restore, and no conditional migration logic based on version is evidenced. The added migration module’s `run` is an identity function with no version checks shown.",
       "evidence": [
         "backend/main.mo",
-        "project_state.json"
+        "backend/migration.mo"
       ]
-    }
-  ],
-  "hallucinated_features": [
+    },
     {
-      "description": "Added a backend state migration module and applied it via `(with migration = Migration.run)` to backfill existing profiles with `avatar = null`.",
-      "reason": "The BuildRequest did not request a migration mechanism or additional backend files; it only required extending the model and APIs.",
+      "requirement": "Backend must remain a single-actor Motoko canister with all logic in backend/main.mo.",
+      "reason": "A new backend/migration.mo file was added and imported/used from backend/main.mo, indicating logic is no longer confined to backend/main.mo only.",
       "evidence": [
         "backend/migration.mo",
         "backend/main.mo"
       ]
     }
   ],
-  "confidence": 0.62,
+  "hallucinated_features": [
+    {
+      "description": "Introduced a separate backend migration module/file (backend/migration.mo) and wired it into the actor using a `with migration = Migration.run` pattern.",
+      "reason": "BuildRequest requires all backend logic to remain in backend/main.mo (single-actor); adding a new backend logic module/file was not requested and conflicts with constraints.",
+      "evidence": [
+        "backend/migration.mo",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "description": "Updated project_state.json metadata (project state/version/feature request listings).",
+      "reason": "BuildRequest focuses on backend stable-memory persistence; changes to project_state.json are not requested as part of implementing REQ-6/7/8.",
+      "evidence": [
+        "project_state.json"
+      ]
+    }
+  ],
+  "confidence": 0.68,
   "changed_files": [
     "backend/main.mo",
     "backend/migration.mo",
-    "frontend-file-summaries.txt",
-    "frontend/src/components/auth/ProfileSetupModal.tsx",
-    "frontend/src/pages/MyProfilePage.tsx",
     "project_state.json"
   ]
 }

@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Let users upload, view, change, and remove an optional profile avatar, stored as part of their user profile.
+**Goal:** Ensure all backend data (users, artists, artworks, submissions, inquiries, and ID counters) persists safely across canister upgrades with versioned stable-state support.
 
 **Planned changes:**
-- Extend the backend `UserProfile` model with an optional avatar field (data URL string) and update all profile read/write APIs to include/persist it.
-- Regenerate/update the Candid interface/types so the frontend can read/write the new avatar field.
-- Update the Profile Setup modal to pick an image file, convert it to a data URL via `fileToDataUrl`, preview it, allow clearing it, and submit it with name/email/bio.
-- Update the My Profile page to display the current avatar (if any) and support uploading/changing/removing it with the existing save/dirty-state flow and error handling.
+- Add stable variables to store snapshots of user profiles, artist profiles, artworks, submissions, inquiries, and ID counters.
+- Implement `system preupgrade` to serialize and write the full in-memory state into stable memory.
+- Implement `system postupgrade` to restore/rebuild the in-memory Maps and counters from stable memory, including a clean initialization path for fresh installs.
+- Add a stable schema/version marker and guarded restore logic with a conditional migration path that preserves existing state (including nullable `UserProfile.avatar`).
 
-**User-visible outcome:** Users can optionally add an avatar image during profile setup or later on the My Profile page, see a preview, save it so it persists on refresh, or remove it.
+**User-visible outcome:** After backend upgrades, previously created profiles, artworks, submissions, and inquiries are still available via existing query methods, and new IDs continue incrementing from the pre-upgrade values.

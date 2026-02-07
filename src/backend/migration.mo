@@ -1,40 +1,71 @@
 import Map "mo:core/Map";
 import Principal "mo:core/Principal";
+import Nat "mo:core/Nat";
 
 module {
-  // Old UserProfile type without the avatar field
-  type OldUserProfile = {
+  type UserProfile = {
     name : Text;
     email : Text;
     bio : Text;
+    avatar : ?Text;
   };
 
-  // Old actor type with userProfiles using the old UserProfile type
+  type ArtistProfile = {
+    id : Nat;
+    name : Text;
+    bio : Text;
+    website : Text;
+    createdAt : Int;
+  };
+
+  type Artwork = {
+    id : Nat;
+    title : Text;
+    description : Text;
+    imageUrl : Text;
+    price : Nat;
+    artist : ArtistProfile;
+    createdAt : Int;
+  };
+
+  type SubmissionStatus = {
+    #pending;
+    #approved;
+    #rejected;
+  };
+
+  type ArtworkSubmission = {
+    id : Nat;
+    artwork : Artwork;
+    artistPrincipal : Principal;
+    artist : ArtistProfile;
+    status : SubmissionStatus;
+    submittedAt : Int;
+    reviewedAt : ?Int;
+  };
+
+  type PurchaseInquiry = {
+    id : Nat;
+    artworkId : Nat;
+    artwork : Artwork;
+    buyerName : Text;
+    buyerEmail : Text;
+    message : Text;
+    createdAt : Int;
+  };
+
   type OldActor = {
-    userProfiles : Map.Map<Principal, OldUserProfile>;
+    userProfiles : Map.Map<Principal, UserProfile>;
+    artistProfiles : Map.Map<Principal, ArtistProfile>;
+    artworks : Map.Map<Nat, Artwork>;
+    submissions : Map.Map<Nat, ArtworkSubmission>;
+    inquiries : Map.Map<Nat, PurchaseInquiry>;
+    nextArtworkId : Nat;
+    nextSubmissionId : Nat;
+    nextInquiryId : Nat;
   };
 
-  // New UserProfile type with optional avatar field
-  type NewUserProfile = {
-    name : Text;
-    email : Text;
-    bio : Text;
-    avatar : ?Text; // New avatar field (data URL)
-  };
-
-  // New actor type with userProfiles using the new UserProfile type
-  type NewActor = {
-    userProfiles : Map.Map<Principal, NewUserProfile>;
-  };
-
-  // Migration function to add avatar field to all user profiles
-  public func run(old : OldActor) : NewActor {
-    let newUserProfiles = old.userProfiles.map<Principal, OldUserProfile, NewUserProfile>(
-      // Map each old profile to new one with avatar set to null
-      func(_id, oldProfile) {
-        { oldProfile with avatar = null };
-      }
-    );
-    { userProfiles = newUserProfiles };
+  public func run(old : OldActor) : OldActor {
+    old;
   };
 };

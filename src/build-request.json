@@ -1,78 +1,87 @@
 {
   "kind": "build_request",
-  "title": "Add profile avatar image upload and display",
+  "title": "Implement stable-memory persistence for users, artists, artworks, submissions, inquiries, and ID counters",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Extend the backend user profile model to store an optional avatar image and include it in all user profile read/write APIs.\n\nContext: backend/main.mo currently defines UserProfile as { name; email; bio } and exposes getCallerUserProfile, getUserProfile, and saveCallerUserProfile.\n\nImplementation requirements:\n- Add an optional field on UserProfile for the avatar image (e.g., a data URL string) so users can have no avatar.\n- Update the Candid interface accordingly so the frontend generated types include the new field.\n- Ensure getCallerUserProfile/getUserProfile return the avatar value and saveCallerUserProfile persists it.",
+      "id": "REQ-6",
+      "text": "Add full upgrade-safe stable-memory persistence to the backend canister so that user profiles, artist profiles, artworks, submissions, purchase inquiries, and all ID counters survive canister upgrades (no data loss on redeploy/upgrade).",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "Allow users to add an avatar or image on profile"
+          "Full stable memory persistence system implemented"
         ]
       },
       "acceptanceCriteria": [
-        "Backend UserProfile type includes an optional avatar field and compiles successfully.",
-        "saveCallerUserProfile accepts and stores the avatar field (including null/no avatar).",
-        "getCallerUserProfile and getUserProfile return the stored avatar value unchanged.",
-        "Existing authorization behavior for profile APIs remains unchanged."
+        "After an upgrade, previously created user profiles are still returned by getCallerUserProfile/getUserProfile.",
+        "After an upgrade, previously created artist profiles are still returned by getArtistProfiles/getArtistProfileByCaller.",
+        "After an upgrade, previously created artworks are still returned by getArtworks/getArtworkById.",
+        "After an upgrade, previously created submissions and inquiries are still returned by the relevant admin and caller query methods.",
+        "After an upgrade, nextArtworkId/nextSubmissionId/nextInquiryId continue from their pre-upgrade values (no ID reuse)."
       ]
     },
     {
-      "id": "REQ-2",
-      "text": "Update the profile setup modal to allow selecting, previewing, and saving an optional avatar image as part of the initial profile creation.\n\nContext: frontend/src/components/auth/ProfileSetupModal.tsx currently collects name, email, and bio.\n\nImplementation requirements:\n- Add an avatar image input (file picker) that accepts images.\n- Use the existing helper frontend/src/utils/fileToDataUrl.ts to convert the selected file into a data URL string and store it in the form state.\n- Show a preview of the selected avatar image.\n- Provide a clear/remove avatar control to unset the selected avatar before submitting.\n- On submit, call the existing save profile mutation with the new avatar field included.",
-      "target": "frontend",
+      "id": "REQ-7",
+      "text": "Implement upgrade-safe serialization/deserialization for the in-memory Maps in backend/main.mo by writing their contents (and counters) to stable variables during preupgrade and restoring them during postupgrade (or an equivalent stable rehydration pattern).",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "Allow users to add an avatar or image on profile"
+          "Full stable memory persistence system implemented"
         ]
       },
       "acceptanceCriteria": [
-        "Profile setup modal allows choosing an image file and shows a preview.",
-        "Invalid file types and files over 5MB show a user-friendly error (using existing fileToDataUrl validations).",
-        "User can remove an ընտ avatar selection before saving.",
-        "Submitting the modal successfully persists the avatar together with name/email/bio."
+        "backend/main.mo defines stable variables that can represent the full contents of: userProfiles, artistProfiles, artworks, submissions, inquiries, plus nextArtworkId/nextSubmissionId/nextInquiryId.",
+        "System preupgrade writes a complete snapshot of the current in-memory state into the stable variables.",
+        "System postupgrade reconstructs the in-memory Maps and counters from the stable snapshot.",
+        "If the stable snapshot is absent/empty (fresh install), the canister initializes cleanly with empty Maps and counters starting at 1."
       ]
     },
     {
-      "id": "REQ-3",
-      "text": "Update the My Profile page to display the current avatar and allow users to add, change, or remove their avatar image.\n\nContext: frontend/src/pages/MyProfilePage.tsx currently supports viewing/editing name, email, and bio.\n\nImplementation requirements:\n- Render the current avatar (if present) near the top of the profile card.\n- Add an image file picker to change the avatar; use frontend/src/utils/fileToDataUrl.ts.\n- Add a remove avatar action that clears the avatar and saves the updated profile.\n- Ensure the Save Changes flow correctly enables/disables based on dirty state and shows success/error states consistently with existing behavior.",
-      "target": "frontend",
+      "id": "REQ-8",
+      "text": "Add a schema/version guard for the stable state and a conditional migration path inside backend/main.mo so future state-shape changes can be introduced without breaking upgrades, while preserving existing deployed state (including the nullable avatar field on user profiles).",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "Allow users to add an avatar or image on profile"
+          "Full stable memory persistence system implemented"
         ]
       },
       "acceptanceCriteria": [
-        "If a user has an avatar saved, it is displayed on My Profile.",
-        "User can upload a new avatar image, preview it, and save it; after save, the avatar persists on refresh.",
-        "User can remove the avatar and save; after save, the avatar no longer displays and remains removed on refresh.",
-        "All avatar upload errors are shown as English user-facing text and do not break the existing profile edit flow."
+        "A stable schema/version marker exists and is checked during upgrade restore.",
+        "When the stored schema/version is older than the current schema/version, the code performs a conditional migration that preserves existing data and initializes any new stable fields safely.",
+        "UserProfile.avatar remains nullable (?Text) throughout persistence and any migration logic (no traps due to missing avatar)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo.",
-    "Do not modify files under frontend/src/components/ui or any other immutable paths listed in SYSTEM_CONTEXT.",
-    "No external databases or third-party storage integrations; avatar must be stored using existing project capabilities."
+    "Backend must remain a single-actor Motoko canister with all logic in backend/main.mo.",
+    "All user-facing/trap/error strings introduced or modified must be in English.",
+    "Do not modify frontend immutable paths (as listed in SYSTEM_CONTEXT.frontend.immutablePaths)."
   ],
   "nonGoals": [
-    "Implementing image CDN hosting, chunked uploads, or server-side image resizing.",
-    "Adding avatar support to artist profiles or artwork submissions unless required for profile avatar functionality.",
-    "Adding third-party authentication providers (only Internet Identity is supported)."
+    "Recovering user profiles and artworks that were already lost in a previous upgrade before stable persistence existed (those bytes are not available anymore).",
+    "Adding new frontend features or changing UI flows unrelated to persistence."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

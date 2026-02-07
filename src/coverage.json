@@ -1,43 +1,35 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-07T20:07:52.629Z",
+  "generatedAt": "2026-02-07T21:07:57.430Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 3,
-    "implemented": 2,
+    "implemented": 0,
     "items": [
       {
-        "id": "REQ-1",
-        "summary": "Extend the backend user profile model to store an optional avatar image and include it in all user profile read/write APIs.\n\nContext: backend/main.mo currently defines UserProfile as { name; email; bio } and exposes getCallerUserProfile, getUserProfile, and saveCallerUserProfile.\n\nImplementation requirements:\n- Add an optional field on UserProfile for the avatar image (e.g., a data URL string) so users can have no avatar.\n- Update the Candid interface accordingly so the frontend generated types include the new field.\n- Ensure getCallerUserProfile/getUserProfile return the avatar value and saveCallerUserProfile persists it.",
+        "id": "REQ-6",
+        "summary": "Add full upgrade-safe stable-memory persistence to the backend canister so that user profiles, artist profiles, artworks, submissions, purchase inquiries, and all ID counters survive canister upgrades (no data loss on redeploy/upgrade).",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-2",
-        "summary": "Update the profile setup modal to allow selecting, previewing, and saving an optional avatar image as part of the initial profile creation.\n\nContext: frontend/src/components/auth/ProfileSetupModal.tsx currently collects name, email, and bio.\n\nImplementation requirements:\n- Add an avatar image input (file picker) that accepts images.\n- Use the existing helper frontend/src/utils/fileToDataUrl.ts to convert the selected file into a data URL string and store it in the form state.\n- Show a preview of the selected avatar image.\n- Provide a clear/remove avatar control to unset the selected avatar before submitting.\n- On submit, call the existing save profile mutation with the new avatar field included.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/auth/ProfileSetupModal.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/auth/ProfileSetupModal.tsx"
-        ]
+        "id": "REQ-7",
+        "summary": "Implement upgrade-safe serialization/deserialization for the in-memory Maps in backend/main.mo by writing their contents (and counters) to stable variables during preupgrade and restoring them during postupgrade (or an equivalent stable rehydration pattern).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
-        "id": "REQ-3",
-        "summary": "Update the My Profile page to display the current avatar and allow users to add, change, or remove their avatar image.\n\nContext: frontend/src/pages/MyProfilePage.tsx currently supports viewing/editing name, email, and bio.\n\nImplementation requirements:\n- Render the current avatar (if present) near the top of the profile card.\n- Add an image file picker to change the avatar; use frontend/src/utils/fileToDataUrl.ts.\n- Add a remove avatar action that clears the avatar and saves the updated profile.\n- Ensure the Save Changes flow correctly enables/disables based on dirty state and shows success/error states consistently with existing behavior.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/MyProfilePage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/MyProfilePage.tsx"
-        ]
+        "id": "REQ-8",
+        "summary": "Add a schema/version guard for the stable state and a conditional migration path inside backend/main.mo so future state-shape changes can be introduced without breaking upgrades, while preserving existing deployed state (including the nullable avatar field on user profiles).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
@@ -46,14 +38,11 @@
     "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
-    "frontend/src/components/auth/ProfileSetupModal.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
-    "frontend/src/pages/MyProfilePage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

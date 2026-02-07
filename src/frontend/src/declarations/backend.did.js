@@ -106,6 +106,7 @@ export const idlService = IDL.Service({
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'rejectSubmission' : IDL.Func([IDL.Nat], [], []),
+  'replaceDataset' : IDL.Func([], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'submitArtwork' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
@@ -215,6 +216,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'rejectSubmission' : IDL.Func([IDL.Nat], [], []),
+    'replaceDataset' : IDL.Func([], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'submitArtwork' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Nat],

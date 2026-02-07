@@ -8,11 +8,11 @@ import Nat "mo:core/Nat";
 import Int "mo:core/Int";
 import Array "mo:core/Array";
 import Order "mo:core/Order";
-import Migration "migration";
-import MixinAuthorization "authorization/MixinAuthorization";
-import AccessControl "authorization/access-control";
 
-// Apply migration in with clause
+import AccessControl "authorization/access-control";
+import MixinAuthorization "authorization/MixinAuthorization";
+import Migration "migration";
+
 (with migration = Migration.run)
 actor {
   public type UserProfile = {
@@ -71,7 +71,7 @@ actor {
     };
   };
 
-  type ArtworkSubmission = {
+  public type ArtworkSubmission = {
     id : Nat;
     artwork : Artwork;
     artistPrincipal : Principal;
@@ -81,7 +81,7 @@ actor {
     reviewedAt : ?Int;
   };
 
-  type PurchaseInquiry = {
+  public type PurchaseInquiry = {
     id : Nat;
     artworkId : Nat;
     artwork : Artwork;
@@ -91,12 +91,13 @@ actor {
     createdAt : Int;
   };
 
-  let userProfiles = Map.empty<Principal, UserProfile>();
-  let artistProfiles = Map.empty<Principal, ArtistProfile>();
-  let artworks = Map.empty<Nat, Artwork>();
-  let submissions = Map.empty<Nat, ArtworkSubmission>();
-  let inquiries = Map.empty<Nat, PurchaseInquiry>();
+  var userProfiles = Map.empty<Principal, UserProfile>();
+  var artistProfiles = Map.empty<Principal, ArtistProfile>();
+  var artworks = Map.empty<Nat, Artwork>();
+  var submissions = Map.empty<Nat, ArtworkSubmission>();
+  var inquiries = Map.empty<Nat, PurchaseInquiry>();
 
+  // Var is intentional.
   var nextArtworkId : Nat = 1;
   var nextSubmissionId : Nat = 1;
   var nextInquiryId : Nat = 1;
@@ -127,7 +128,11 @@ actor {
   };
 
   // Artist Profile Management
-  public shared ({ caller }) func createArtistProfile(name : Text, bio : Text, website : Text) : async () {
+  public shared ({ caller }) func createArtistProfile(
+    name : Text,
+    bio : Text,
+    website : Text,
+  ) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can create artist profiles");
     };
@@ -158,7 +163,12 @@ actor {
   };
 
   // Artwork Submission
-  public shared ({ caller }) func submitArtwork(title : Text, description : Text, imageUrl : Text, price : Nat) : async SubmissionResult {
+  public shared ({ caller }) func submitArtwork(
+    title : Text,
+    description : Text,
+    imageUrl : Text,
+    price : Nat,
+  ) : async SubmissionResult {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can submit artworks");
     };
@@ -273,7 +283,7 @@ actor {
     // Update inquiries where the artwork is referenced
     let updatedInquiries = inquiries.map<Nat, PurchaseInquiry, PurchaseInquiry>(
       func(_id, inquiry) {
-        if (inquiry.artworkId == artworkId) {
+        if (inquiry.artwork.id == artworkId) {
           {
             id = inquiry.id;
             artworkId = inquiry.artworkId;
@@ -484,5 +494,65 @@ actor {
       }
     );
     artworkInquiries.toArray();
+  };
+
+  // Admin: Replace dataset with fresh hardcoded data
+  public shared ({ caller }) func replaceDataset() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can replace the dataset");
+    };
+
+    // Clear all existing data
+    userProfiles.clear();
+    artistProfiles.clear();
+    artworks.clear();
+    submissions.clear();
+    inquiries.clear();
+
+    // Reset ID counters
+    nextArtworkId := 1;
+    nextSubmissionId := 1;
+    nextInquiryId := 1;
+
+    // Insert hardcoded replacement dataset
+    let now = Time.now();
+
+    let artistProfile : ArtistProfile = {
+      id = 1;
+      name = "Jane Doe";
+      bio = "Contemporary sculptor exploring digital and physical forms.";
+      website = "www.janedoestudios.com";
+      createdAt = now;
+    };
+
+    let artwork : Artwork = {
+      id = 1;
+      title = "Digital Dreamscape";
+      description = "A fusion of digital art and 3D printed sculpture.";
+      imageUrl = "https://example.com/janedoestudios";
+      price = 15000;
+      artist = artistProfile;
+      createdAt = now;
+    };
+
+    let submission : ArtworkSubmission = {
+      id = 1;
+      artwork;
+      artistPrincipal = Principal.anonymous();
+      artist = artistProfile;
+      status = #approved;
+      submittedAt = now;
+      reviewedAt = ?now;
+    };
+
+    // Add the hardcoded data
+    artistProfiles.add(Principal.anonymous(), artistProfile);
+    artworks.add(1, artwork);
+    submissions.add(1, submission);
+
+    // Update counters to next available IDs
+    nextArtworkId := 2;
+    nextSubmissionId := 2;
+    nextInquiryId := 1;
   };
 };

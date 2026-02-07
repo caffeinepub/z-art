@@ -1,41 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Profile avatar upload, preview, and management in profile flows",
-  "requirements": [
-    {
-      "id": "REQ-2",
-      "summary": "Add optional avatar image selection, preview, and removal to the profile setup modal, and persist it with the saved profile.",
-      "acceptanceCriteria": [
-        "Profile setup modal allows choosing an image file and shows a preview.",
-        "Invalid file types and files over 5MB show a user-friendly error (using existing fileToDataUrl validations).",
-        "User can remove an avatar selection before saving.",
-        "Submitting the modal successfully persists the avatar together with name/email/bio."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/auth/ProfileSetupModal.tsx",
-          "operation": "modify",
-          "description": "Extend the modal form state to include an optional avatar field; add an image file input that uses frontend/src/utils/fileToDataUrl.ts to validate/convert to a data URL, render a preview, and provide a clear/remove action that unsets the avatar before submit. Update submit payload to include avatar along with name/email/bio when calling the existing save profile mutation."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Display the current avatar on My Profile and allow users to add/change/remove it with consistent dirty-state and save feedback behavior.",
-      "acceptanceCriteria": [
-        "If a user has an avatar saved, it is displayed on My Profile.",
-        "User can upload a new avatar image, preview it, and save it; after save, the avatar persists on refresh.",
-        "User can remove the avatar and save; after save, the avatar no longer displays and remains removed on refresh.",
-        "All avatar upload errors are shown as English user-facing text and do not break the existing profile edit flow."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/MyProfilePage.tsx",
-          "operation": "modify",
-          "description": "Render the current avatar (if present) near the top of the profile card; add an image file picker to change the avatar using frontend/src/utils/fileToDataUrl.ts with preview and user-friendly error display; add a remove-avatar action that clears the avatar and includes the cleared avatar in the saved profile. Ensure dirty-state and Save Changes enable/disable logic accounts for avatar changes (add/change/remove) and that success/error states remain consistent with existing behavior."
-        }
-      ]
-    }
-  ]
+  "title": "Frontend plan: no UI changes required for backend stable-memory persistence",
+  "requirements": []
 }

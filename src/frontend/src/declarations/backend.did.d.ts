@@ -85,6 +85,7 @@ export interface _SERVICE {
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'rejectSubmission' : ActorMethod<[bigint], undefined>,
+  'replaceDataset' : ActorMethod<[], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'submitArtwork' : ActorMethod<
     [string, string, string, bigint],

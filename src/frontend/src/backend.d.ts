@@ -81,6 +81,7 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     rejectSubmission(submissionId: bigint): Promise<void>;
+    replaceDataset(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     submitArtwork(title: string, description: string, imageUrl: string, price: bigint): Promise<SubmissionResult>;
 }

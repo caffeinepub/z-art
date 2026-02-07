@@ -1,24 +1,20 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
+  "projectStateVersion": 7,
   "summary": "New project",
-  "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "architectural_notes": [
+    "Implement full stable-memory persistence so users, artist profiles, artworks, submissions, inquiries, and ID counters survive canister upgrades; include migration support for future schema changes."
+  ],
+  "known_issues": [
+    "After deploying Draft Version 14, previously uploaded users and artworks are missing due to lack of stable-memory persistence across upgrades."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-the-profile-setup-modal-to-allow-selecting-previewing-and-saving-an-optional-avatar-image-as-part-of-the-initial-profile-creation-context-frontend-src-components-auth-profilesetupmodal-tsx-currently-collects-name-email-and-bio-implementation-requirements-add-an-avatar-image-input-file-picker-that-accepts-images-use-the-existing-helper-frontend-src-utils-filetodataurl-ts-to-convert-the-selected-file-into-a-data-url-string-and-store-it-in-the-form-state-show-a-preview-of-the-selected-avatar-image-provide-a-clear-remove-avatar-control-to-unset-the-selected-avatar-before-submitting-on-submit-call-the-existing-save-profile-mutation-with-the-new-avatar-field-included",
-      "title": "Update the profile setup modal to allow selecting, previewing, and saving an optional avatar image as part of the initial profile creation.\n\nContext: frontend/src/components/auth/ProfileSetupModal.tsx currently collects name, email, and bio.\n\nImplementation requirements:\n- Add an avatar image input (file picker) that accepts images.\n- Use the existing helper frontend/src/utils/fileToDataUrl.ts to convert the selected file into a data URL string and store it in the form state.\n- Show a preview of the selected avatar image.\n- Provide a clear/remove avatar control to unset the selected avatar before submitting.\n- On submit, call the existing save profile mutation with the new avatar field included.",
+      "id": "feature-expose-a-ui-control-in-the-admin-dashboard-that-allows-an-admin-to-trigger-the-backend-replace-data-operation-with-a-confirmation-step-ui-requirements-add-a-clearly-labeled-action-english-text-such-as-replace-demo-data-or-replace-users-and-artworks-require-explicit-confirmation-modal-dialog-before-executing-show-success-and-error-feedback-in-the-ui-after-success-refresh-relevant-cached-queries-so-the-gallery-admin-views-reflect-the-replacement-dataset-without-requiring-a-manual-reload",
+      "title": "Expose a UI control in the Admin Dashboard that allows an admin to trigger the backend \"replace data\" operation, with a confirmation step.\n\nUI requirements:\n- Add a clearly labeled action (English text) such as \"Replace demo data\" or \"Replace users and artworks\"\n- Require explicit confirmation (modal/dialog) before executing\n- Show success and error feedback in the UI\n- After success, refresh relevant cached queries so the Gallery/Admin views reflect the replacement dataset without requiring a manual reload",
       "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-my-profile-page-to-display-the-current-avatar-and-allow-users-to-add-change-or-remove-their-avatar-image-context-frontend-src-pages-myprofilepage-tsx-currently-supports-viewing-editing-name-email-and-bio-implementation-requirements-render-the-current-avatar-if-present-near-the-top-of-the-profile-card-add-an-image-file-picker-to-change-the-avatar-use-frontend-src-utils-filetodataurl-ts-add-a-remove-avatar-action-that-clears-the-avatar-and-saves-the-updated-profile-ensure-the-save-changes-flow-correctly-enables-disables-based-on-dirty-state-and-shows-success-error-states-consistently-with-existing-behavior",
-      "title": "Update the My Profile page to display the current avatar and allow users to add, change, or remove their avatar image.\n\nContext: frontend/src/pages/MyProfilePage.tsx currently supports viewing/editing name, email, and bio.\n\nImplementation requirements:\n- Render the current avatar (if present) near the top of the profile card.\n- Add an image file picker to change the avatar; use frontend/src/utils/fileToDataUrl.ts.\n- Add a remove avatar action that clears the avatar and saves the updated profile.\n- Ensure the Save Changes flow correctly enables/disables based on dirty state and shows success/error states consistently with existing behavior.",
-      "reqIds": [
-        "REQ-3"
+        "REQ-5"
       ],
       "version": 1
     }
@@ -26,20 +22,74 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Allow users to add an avatar/image to their profile",
+      "summary": "Include previously uploaded art and user profiles in the deployed build (persist and load existing uploads)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Extend the backend user profile model to store an optional avatar image and include it in all user profile read/write APIs.\n\nContext: backend/main.mo currently defines UserProfile as { name; email; bio } and exposes getCallerUserProfile, getUserProfile, and saveCallerUserProfile.\n\nImplementation requirements:\n- Add an optional field on UserProfile for the avatar image (e.g., a data URL string) so users can have no avatar.\n- Update the Candid interface accordingly so the frontend generated types include the new field.\n- Ensure getCallerUserProfile/getUserProfile return the avatar value and saveCallerUserProfile persists it.",
+      "summary": "Persist user profiles, artist profiles, artworks, submissions, inquiries, and ID counters across canister upgrades so previously uploaded art and profiles remain available after redeploy/upgrade.",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Implement upgrade-safe serialization/deserialization for in-memory Maps by storing their contents and counters in stable variables, restoring them on initialization, and ensuring state is correctly written in preupgrade and reloaded in postupgrade (or equivalent stable rehydration pattern).",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "If a schema/state-shape change is required to support stable persistence, add a conditional migration that preserves existing deployed state (including the previously introduced nullable avatar field on user profiles) and safely initializes any new stable fields.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Replace the current users and artwork data/content (update/replace seeded or existing users and artworks in the deployed build).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Add an admin-only backend operation to replace the currently stored user-related and artwork-related data with a fresh dataset.\n\nThis operation must:\n- Remove/overwrite existing stored data for: user profiles, artist profiles, artworks, submissions, and purchase inquiries\n- Reset all ID counters (nextArtworkId, nextSubmissionId, nextInquiryId) to a consistent initial state\n- Insert a small, hardcoded replacement dataset (at minimum: 1 artist profile and 1 artwork, plus any required linking submissions) so the gallery is not empty after replacement\n- Be restricted to admins (trap with a clear error message if called by a non-admin)",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Add full upgrade-safe stable-memory persistence to the backend canister so that user profiles, artist profiles, artworks, submissions, purchase inquiries, and all ID counters survive canister upgrades (no data loss on redeploy/upgrade).",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Implement upgrade-safe serialization/deserialization for the in-memory Maps in backend/main.mo by writing their contents (and counters) to stable variables during preupgrade and restoring them during postupgrade (or an equivalent stable rehydration pattern).",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Add a schema/version guard for the stable state and a conditional migration path inside backend/main.mo so future state-shape changes can be introduced without breaking upgrades, while preserving existing deployed state (including the nullable avatar field on user profiles).",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "status": "pending"
     }
   ],
-  "projectName": "Add profile avatar image upload and display",
+  "projectName": "Persist and restore previously uploaded artworks and profiles across upgrades",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
