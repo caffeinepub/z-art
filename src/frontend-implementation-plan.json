@@ -1,6 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Frontend plan: no UI changes required for backend stable-memory persistence",
+  "title": "Frontend impact assessment for backend stable-memory persistence + V14 migration",
   "requirements": []
 }

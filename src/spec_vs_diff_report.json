@@ -1,61 +1,53 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-07T21:07:57.427Z",
-  "summary": "Diff adds a new backend/migration.mo module and wires it into backend/main.mo via a Motoko “with migration = Migration.run” pattern, but the provided diff summary does not show any stable variables, preupgrade/postupgrade hooks, or schema/version guarding needed for upgrade-safe persistence. Also, adding backend/migration.mo appears to violate the constraint that all backend logic must remain in backend/main.mo as a single-actor canister.",
+  "generatedAt": "2026-02-08T06:17:47.179Z",
+  "summary": "The diff adds a migration module and wires a `migration` function into `backend/main.mo`, but it does not show any stable variables or explicit `preupgrade`/`postupgrade` hooks, nor any conditional detection/idempotent migration logic specific to Version 14. As provided, the changes are insufficient to demonstrate stable-memory persistence and automatic upgrade migration per REQ-1..REQ-4.",
   "missing_requirements": [
     {
-      "id": "REQ-6",
-      "requirement": "Add full upgrade-safe stable-memory persistence so user profiles, artist profiles, artworks, submissions, inquiries, and all ID counters survive canister upgrades (no data loss).",
-      "reason": "The diff summary shows only in-memory `var` Maps and counters in backend/main.mo, with no evidence of stable storage and restore logic that would preserve state across upgrades.",
+      "id": "REQ-1",
+      "requirement": "Implement stable-memory persistence for all application data so that users and uploads from Version 14 (user profiles, artist profiles, artworks, submissions, purchase inquiries, and ID counters) are preserved across canister upgrades automatically, with no manual trigger.",
+      "reason": "No evidence of stable variables holding serialized state, nor any code showing state being preserved across upgrades; `backend/main.mo` only shows in-memory `var` Maps/counters.",
       "evidence": [
         "backend/main.mo"
       ]
     },
     {
-      "id": "REQ-7",
-      "requirement": "Implement upgrade-safe serialization/deserialization by snapshotting Maps and counters to stable variables in preupgrade and restoring them in postupgrade (or equivalent pattern), initializing cleanly on fresh install.",
-      "reason": "No stable variables representing snapshots are shown, and no `system func preupgrade` / `system func postupgrade` (or equivalent stable rehydration) is evidenced in the diff summary.",
+      "id": "REQ-2",
+      "requirement": "Add explicit upgrade hooks to serialize in-memory Maps and other runtime state into stable variables on upgrade (preupgrade) and restore them on install/upgrade completion (postupgrade), ensuring the runtime Maps are rehydrated correctly.",
+      "reason": "The diff does not show any `system func preupgrade` / `system func postupgrade` hooks or equivalent serialization/rehydration logic into/from stable storage.",
       "evidence": [
         "backend/main.mo"
       ]
     },
     {
-      "id": "REQ-8",
-      "requirement": "Add a schema/version guard for stable state and a conditional migration path for future state-shape changes, preserving existing data (including nullable UserProfile.avatar).",
-      "reason": "No stable schema/version marker is shown being stored/checked during restore, and no conditional migration logic based on version is evidenced. The added migration module’s `run` is an identity function with no version checks shown.",
-      "evidence": [
-        "backend/main.mo",
-        "backend/migration.mo"
-      ]
-    },
-    {
-      "requirement": "Backend must remain a single-actor Motoko canister with all logic in backend/main.mo.",
-      "reason": "A new backend/migration.mo file was added and imported/used from backend/main.mo, indicating logic is no longer confined to backend/main.mo only.",
+      "id": "REQ-3",
+      "requirement": "Implement a conditional, automatic migration path that restores data specifically from Version 14 state shape into the new stable storage format during upgrade, without requiring any manual trigger or admin intervention.",
+      "reason": "`backend/migration.mo` defines Old/New types but `run` is a direct field pass-through with no Version 14 detection, no transformation to a new stable format, and no idempotency safeguards shown.",
       "evidence": [
         "backend/migration.mo",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "Ensure all mutating operations update the persisted state correctly so that post-upgrade state matches pre-upgrade state, including admin dataset replacement (replaceDataset) and all create/edit/delete flows.",
+      "reason": "No evidence of a persistence layer being updated by mutating operations (e.g., writing to stable storage) or of `replaceDataset` persistence behavior; only in-memory Map updates are visible in the provided truncation.",
+      "evidence": [
         "backend/main.mo"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Introduced a separate backend migration module/file (backend/migration.mo) and wired it into the actor using a `with migration = Migration.run` pattern.",
-      "reason": "BuildRequest requires all backend logic to remain in backend/main.mo (single-actor); adding a new backend logic module/file was not requested and conflicts with constraints.",
-      "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo"
-      ]
-    },
-    {
-      "description": "Updated project_state.json metadata (project state/version/feature request listings).",
-      "reason": "BuildRequest focuses on backend stable-memory persistence; changes to project_state.json are not requested as part of implementing REQ-6/7/8.",
+      "description": "Introduced/updated project tracking metadata (project_state.json) with AR items and statuses.",
+      "reason": "The BuildRequest focuses on backend stable persistence and migration; it does not request adding or modifying repository/project state tracking files.",
       "evidence": [
         "project_state.json"
       ]
     }
   ],
-  "confidence": 0.68,
+  "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
     "backend/migration.mo",

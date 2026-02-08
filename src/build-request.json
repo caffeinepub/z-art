@@ -1,87 +1,95 @@
 {
   "kind": "build_request",
-  "title": "Implement stable-memory persistence for users, artists, artworks, submissions, inquiries, and ID counters",
+  "title": "Redesign backend storage for stable persistence and automatic migration from Version 14",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-6",
-      "text": "Add full upgrade-safe stable-memory persistence to the backend canister so that user profiles, artist profiles, artworks, submissions, purchase inquiries, and all ID counters survive canister upgrades (no data loss on redeploy/upgrade).",
+      "id": "REQ-1",
+      "text": "Implement stable-memory persistence for all application data so that users and uploads from Version 14 (user profiles, artist profiles, artworks, submissions, purchase inquiries, and ID counters) are preserved across canister upgrades automatically, with no manual trigger.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "Full stable memory persistence system implemented"
+          "From version 14. Redesign storage for persistence. Automatically preserve and migrate without manual trigger."
         ]
       },
       "acceptanceCriteria": [
-        "After an upgrade, previously created user profiles are still returned by getCallerUserProfile/getUserProfile.",
-        "After an upgrade, previously created artist profiles are still returned by getArtistProfiles/getArtistProfileByCaller.",
-        "After an upgrade, previously created artworks are still returned by getArtworks/getArtworkById.",
-        "After an upgrade, previously created submissions and inquiries are still returned by the relevant admin and caller query methods.",
-        "After an upgrade, nextArtworkId/nextSubmissionId/nextInquiryId continue from their pre-upgrade values (no ID reuse)."
+        "After upgrading the canister, previously created user profiles, artist profiles, artworks (including their imageUrl fields), submissions, inquiries, and ID counters are still present and queryable.",
+        "No admin/user action (UI or backend call) is required to preserve state during upgrades.",
+        "A fresh deploy/upgrade cycle does not reset nextArtworkId/nextSubmissionId/nextInquiryId if existing data is present."
       ]
     },
     {
-      "id": "REQ-7",
-      "text": "Implement upgrade-safe serialization/deserialization for the in-memory Maps in backend/main.mo by writing their contents (and counters) to stable variables during preupgrade and restoring them during postupgrade (or an equivalent stable rehydration pattern).",
+      "id": "REQ-2",
+      "text": "Add explicit upgrade hooks to serialize in-memory Maps and other runtime state into stable variables on upgrade (preupgrade) and restore them on install/upgrade completion (postupgrade), ensuring the runtime Maps are rehydrated correctly.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "Full stable memory persistence system implemented"
+          "Redesign storage for persistence. Automatically preserve and migrate without manual trigger."
         ]
       },
       "acceptanceCriteria": [
-        "backend/main.mo defines stable variables that can represent the full contents of: userProfiles, artistProfiles, artworks, submissions, inquiries, plus nextArtworkId/nextSubmissionId/nextInquiryId.",
-        "System preupgrade writes a complete snapshot of the current in-memory state into the stable variables.",
-        "System postupgrade reconstructs the in-memory Maps and counters from the stable snapshot.",
-        "If the stable snapshot is absent/empty (fresh install), the canister initializes cleanly with empty Maps and counters starting at 1."
+        "Before upgrade, all Map-backed collections (userProfiles, artistProfiles, artworks, submissions, inquiries) and counters are written into stable storage in a format that can be decoded after upgrade.",
+        "After upgrade, the in-memory Maps are reconstructed from stable storage such that query methods (e.g., getArtworks, getArtistProfiles, getCallerUserProfile) return the same data as before upgrade.",
+        "If stable storage is empty (first install), the canister initializes with empty datasets and counters set to their initial values."
       ]
     },
     {
-      "id": "REQ-8",
-      "text": "Add a schema/version guard for the stable state and a conditional migration path inside backend/main.mo so future state-shape changes can be introduced without breaking upgrades, while preserving existing deployed state (including the nullable avatar field on user profiles).",
+      "id": "REQ-3",
+      "text": "Implement a conditional, automatic migration path that restores data specifically from Version 14 state shape into the new stable storage format during upgrade, without requiring any manual trigger or admin intervention.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "Full stable memory persistence system implemented"
+          "From version 14. ... Automatically preserve and migrate without manual trigger."
         ]
       },
       "acceptanceCriteria": [
-        "A stable schema/version marker exists and is checked during upgrade restore.",
-        "When the stored schema/version is older than the current schema/version, the code performs a conditional migration that preserves existing data and initializes any new stable fields safely.",
-        "UserProfile.avatar remains nullable (?Text) throughout persistence and any migration logic (no traps due to missing avatar)."
+        "On upgrade from a canister running Version 14 state layout, the upgrade process detects the legacy state and migrates it into the new stable state automatically.",
+        "Migration preserves all existing entities and relationships (e.g., submissions referencing artworks; inquiries embedding artwork data) without data loss.",
+        "Migration is idempotent: repeating an upgrade (or upgrading again after the first successful migration) does not duplicate or corrupt data.",
+        "If the canister is not upgrading from Version 14, the migration path does not run and existing stable state is preserved."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Ensure all mutating operations update the persisted state correctly so that post-upgrade state matches pre-upgrade state, including admin dataset replacement (replaceDataset) and all create/edit/delete flows.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Redesign storage for persistence. Automatically preserve and migrate without manual trigger."
+        ]
+      },
+      "acceptanceCriteria": [
+        "After calling replaceDataset and then upgrading the canister, the replaced dataset remains present (it does not revert to older data or empty state).",
+        "After creating/editing/deleting artworks and submissions and then upgrading the canister, the changes remain present.",
+        "No mutating operation leaves stable persistence in a partially updated state that causes traps or missing data after upgrade."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister with all logic in backend/main.mo.",
-    "All user-facing/trap/error strings introduced or modified must be in English.",
-    "Do not modify frontend immutable paths (as listed in SYSTEM_CONTEXT.frontend.immutablePaths)."
+    "Backend must remain a single Motoko actor in backend/main.mo (no multi-canister or multi-service architecture).",
+    "Do not introduce external databases or non-Motoko backend components.",
+    "Use English for any user-facing/trap/error strings added or modified as part of this work.",
+    "Frontend immutable paths (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui) must not be edited."
   ],
   "nonGoals": [
-    "Recovering user profiles and artworks that were already lost in a previous upgrade before stable persistence existed (those bytes are not available anymore).",
-    "Adding new frontend features or changing UI flows unrelated to persistence."
+    "Rebuilding or redeploying the old Version 14 canister outside of the standard upgrade mechanism.",
+    "Adding new UI controls to manually trigger migration or restoration.",
+    "Adding new product features unrelated to persistence/migration (e.g., new gallery functionality, new admin features beyond ensuring existing ones remain consistent)."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

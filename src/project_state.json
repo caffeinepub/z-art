@@ -1,34 +1,23 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 7,
-  "summary": "New project",
+  "projectStateVersion": 3,
+  "summary": "Implement persistent storage and automatic upgrade migration to restore users and uploads from version 14 and preserve them across future canister upgrades.",
   "architectural_notes": [
-    "Implement full stable-memory persistence so users, artist profiles, artworks, submissions, inquiries, and ID counters survive canister upgrades; include migration support for future schema changes."
+    "Redesign user and upload storage to persist across canister upgrades (use stable storage + preupgrade/postupgrade migration) and include an automatic migration path from version 14 data."
   ],
-  "known_issues": [
-    "After deploying Draft Version 14, previously uploaded users and artworks are missing due to lack of stable-memory persistence across upgrades."
-  ],
+  "known_issues": [],
   "isFixRequest": true,
-  "existing_features": [
-    {
-      "id": "feature-expose-a-ui-control-in-the-admin-dashboard-that-allows-an-admin-to-trigger-the-backend-replace-data-operation-with-a-confirmation-step-ui-requirements-add-a-clearly-labeled-action-english-text-such-as-replace-demo-data-or-replace-users-and-artworks-require-explicit-confirmation-modal-dialog-before-executing-show-success-and-error-feedback-in-the-ui-after-success-refresh-relevant-cached-queries-so-the-gallery-admin-views-reflect-the-replacement-dataset-without-requiring-a-manual-reload",
-      "title": "Expose a UI control in the Admin Dashboard that allows an admin to trigger the backend \"replace data\" operation, with a confirmation step.\n\nUI requirements:\n- Add a clearly labeled action (English text) such as \"Replace demo data\" or \"Replace users and artworks\"\n- Require explicit confirmation (modal/dialog) before executing\n- Show success and error feedback in the UI\n- After success, refresh relevant cached queries so the Gallery/Admin views reflect the replacement dataset without requiring a manual reload",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    }
-  ],
+  "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Include previously uploaded art and user profiles in the deployed build (persist and load existing uploads)",
+      "summary": "Restore users and uploads from version 14 by redesigning storage for persistence and performing automatic upgrade preservation/migration with no manual trigger",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Persist user profiles, artist profiles, artworks, submissions, inquiries, and ID counters across canister upgrades so previously uploaded art and profiles remain available after redeploy/upgrade.",
+      "summary": "Implement stable-memory persistence for all application data so that users and uploads from Version 14 (user profiles, artist profiles, artworks, submissions, purchase inquiries, and ID counters) are preserved across canister upgrades automatically, with no manual trigger.",
       "reqIds": [
         "REQ-1"
       ],
@@ -36,7 +25,7 @@
     },
     {
       "id": "AR-3",
-      "summary": "Implement upgrade-safe serialization/deserialization for in-memory Maps by storing their contents and counters in stable variables, restoring them on initialization, and ensuring state is correctly written in preupgrade and reloaded in postupgrade (or equivalent stable rehydration pattern).",
+      "summary": "Add explicit upgrade hooks to serialize in-memory Maps and other runtime state into stable variables on upgrade (preupgrade) and restore them on install/upgrade completion (postupgrade), ensuring the runtime Maps are rehydrated correctly.",
       "reqIds": [
         "REQ-2"
       ],
@@ -44,7 +33,7 @@
     },
     {
       "id": "AR-4",
-      "summary": "If a schema/state-shape change is required to support stable persistence, add a conditional migration that preserves existing deployed state (including the previously introduced nullable avatar field on user profiles) and safely initializes any new stable fields.",
+      "summary": "Implement a conditional, automatic migration path that restores data specifically from Version 14 state shape into the new stable storage format during upgrade, without requiring any manual trigger or admin intervention.",
       "reqIds": [
         "REQ-3"
       ],
@@ -52,44 +41,14 @@
     },
     {
       "id": "AR-5",
-      "summary": "Replace the current users and artwork data/content (update/replace seeded or existing users and artworks in the deployed build).",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Add an admin-only backend operation to replace the currently stored user-related and artwork-related data with a fresh dataset.\n\nThis operation must:\n- Remove/overwrite existing stored data for: user profiles, artist profiles, artworks, submissions, and purchase inquiries\n- Reset all ID counters (nextArtworkId, nextSubmissionId, nextInquiryId) to a consistent initial state\n- Insert a small, hardcoded replacement dataset (at minimum: 1 artist profile and 1 artwork, plus any required linking submissions) so the gallery is not empty after replacement\n- Be restricted to admins (trap with a clear error message if called by a non-admin)",
+      "summary": "Ensure all mutating operations update the persisted state correctly so that post-upgrade state matches pre-upgrade state, including admin dataset replacement (replaceDataset) and all create/edit/delete flows.",
       "reqIds": [
         "REQ-4"
       ],
       "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Add full upgrade-safe stable-memory persistence to the backend canister so that user profiles, artist profiles, artworks, submissions, purchase inquiries, and all ID counters survive canister upgrades (no data loss on redeploy/upgrade).",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-8",
-      "summary": "Implement upgrade-safe serialization/deserialization for the in-memory Maps in backend/main.mo by writing their contents (and counters) to stable variables during preupgrade and restoring them during postupgrade (or an equivalent stable rehydration pattern).",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-9",
-      "summary": "Add a schema/version guard for the stable state and a conditional migration path inside backend/main.mo so future state-shape changes can be introduced without breaking upgrades, while preserving existing deployed state (including the nullable avatar field on user profiles).",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "status": "pending"
     }
   ],
-  "projectName": "Persist and restore previously uploaded artworks and profiles across upgrades",
+  "projectName": "Redesign backend storage for stable persistence and automatic migration from Version 14",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -91,18 +91,17 @@ actor {
     createdAt : Int;
   };
 
-  var userProfiles = Map.empty<Principal, UserProfile>();
-  var artistProfiles = Map.empty<Principal, ArtistProfile>();
-  var artworks = Map.empty<Nat, Artwork>();
-  var submissions = Map.empty<Nat, ArtworkSubmission>();
-  var inquiries = Map.empty<Nat, PurchaseInquiry>();
+  var userProfiles : Map.Map<Principal, UserProfile> = Map.empty<Principal, UserProfile>();
+  var artistProfiles : Map.Map<Principal, ArtistProfile> = Map.empty<Principal, ArtistProfile>();
+  var artworks : Map.Map<Nat, Artwork> = Map.empty<Nat, Artwork>();
+  var submissions : Map.Map<Nat, ArtworkSubmission> = Map.empty<Nat, ArtworkSubmission>();
+  var inquiries : Map.Map<Nat, PurchaseInquiry> = Map.empty<Nat, PurchaseInquiry>();
 
-  // Var is intentional.
   var nextArtworkId : Nat = 1;
   var nextSubmissionId : Nat = 1;
   var nextInquiryId : Nat = 1;
 
-  let accessControlState = AccessControl.initState();
+  let accessControlState : AccessControl.AccessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
   // User Profile Management (required by frontend)
@@ -200,6 +199,7 @@ actor {
 
     submissions.add(nextSubmissionId, submission);
     artworks.add(nextArtworkId, artwork);
+
     nextArtworkId += 1;
     nextSubmissionId += 1;
 
@@ -502,19 +502,16 @@ actor {
       Runtime.trap("Unauthorized: Only admins can replace the dataset");
     };
 
-    // Clear all existing data
     userProfiles.clear();
     artistProfiles.clear();
     artworks.clear();
     submissions.clear();
     inquiries.clear();
 
-    // Reset ID counters
     nextArtworkId := 1;
     nextSubmissionId := 1;
     nextInquiryId := 1;
 
-    // Insert hardcoded replacement dataset
     let now = Time.now();
 
     let artistProfile : ArtistProfile = {
@@ -545,12 +542,10 @@ actor {
       reviewedAt = ?now;
     };
 
-    // Add the hardcoded data
     artistProfiles.add(Principal.anonymous(), artistProfile);
     artworks.add(1, artwork);
     submissions.add(1, submission);
 
-    // Update counters to next available IDs
     nextArtworkId := 2;
     nextSubmissionId := 2;
     nextInquiryId := 1;

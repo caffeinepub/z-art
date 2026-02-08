@@ -1,16 +1,9 @@
 import Map "mo:core/Map";
-import Principal "mo:core/Principal";
 import Nat "mo:core/Nat";
+import Principal "mo:core/Principal";
 
 module {
-  type UserProfile = {
-    name : Text;
-    email : Text;
-    bio : Text;
-    avatar : ?Text;
-  };
-
-  type ArtistProfile = {
+  public type ArtistProfile = {
     id : Nat;
     name : Text;
     bio : Text;
@@ -18,7 +11,7 @@ module {
     createdAt : Int;
   };
 
-  type Artwork = {
+  public type Artwork = {
     id : Nat;
     title : Text;
     description : Text;
@@ -28,13 +21,13 @@ module {
     createdAt : Int;
   };
 
-  type SubmissionStatus = {
+  public type SubmissionStatus = {
     #pending;
     #approved;
     #rejected;
   };
 
-  type ArtworkSubmission = {
+  public type ArtworkSubmission = {
     id : Nat;
     artwork : Artwork;
     artistPrincipal : Principal;
@@ -44,7 +37,7 @@ module {
     reviewedAt : ?Int;
   };
 
-  type PurchaseInquiry = {
+  public type PurchaseInquiry = {
     id : Nat;
     artworkId : Nat;
     artwork : Artwork;
@@ -54,8 +47,8 @@ module {
     createdAt : Int;
   };
 
-  type OldActor = {
-    userProfiles : Map.Map<Principal, UserProfile>;
+  public type Old = {
+    userProfiles : Map.Map<Principal, { name : Text; email : Text; bio : Text; avatar : ?Text }>;
     artistProfiles : Map.Map<Principal, ArtistProfile>;
     artworks : Map.Map<Nat, Artwork>;
     submissions : Map.Map<Nat, ArtworkSubmission>;
@@ -65,7 +58,27 @@ module {
     nextInquiryId : Nat;
   };
 
-  public func run(old : OldActor) : OldActor {
-    old;
+  type New = {
+    userProfiles : Map.Map<Principal, { name : Text; email : Text; bio : Text; avatar : ?Text }>;
+    artistProfiles : Map.Map<Principal, ArtistProfile>;
+    artworks : Map.Map<Nat, Artwork>;
+    submissions : Map.Map<Nat, ArtworkSubmission>;
+    inquiries : Map.Map<Nat, PurchaseInquiry>;
+    nextArtworkId : Nat;
+    nextSubmissionId : Nat;
+    nextInquiryId : Nat;
+  };
+
+  public func run(old : Old) : New {
+    {
+      userProfiles = old.userProfiles;
+      artistProfiles = old.artistProfiles;
+      artworks = old.artworks;
+      submissions = old.submissions;
+      inquiries = old.inquiries;
+      nextArtworkId = old.nextArtworkId;
+      nextSubmissionId = old.nextSubmissionId;
+      nextInquiryId = old.nextInquiryId;
+    };
   };
 };
