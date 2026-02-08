@@ -1,59 +1,41 @@
 {
   "kind": "build_request",
-  "title": "Grant caller admin review permissions (no UI)",
+  "title": "Remove selected principal display element from the header",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a canister-level admin authorization mechanism that allows the user to become an admin with full review permissions (approve/reject artwork submissions) without adding any new admin-management UI.",
-      "target": "backend",
+      "text": "Remove the selected header element at XPath /html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[2]/div[1]/div[1] entirely, and let the surrounding header layout collapse naturally (no reserved space). The removal must be permanent for all users (no conditional rendering to show it in any state).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-11",
-          "msg-12",
-          "msg-13",
-          "msg-14"
+          "msg-6",
+          "msg-7",
+          "msg-8"
         ],
         "quotes": [
-          "Make me admin",
-          "1 yes\n2 full review permissions \n3 no",
-          "Great — I’ll add your Internet Identity principal to the canister’s admins list and give admins full review permissions, with no new UI required.",
+          "1 entirely",
+          "2 adjust surround",
+          "3 permanent all users",
           "Proceed"
         ]
       },
       "acceptanceCriteria": [
-        "After the update is deployed, the user can log in with Internet Identity and is recognized as an admin by the backend (e.g., `isCallerAdmin()` returns true for that identity).",
-        "Admin-only backend operations for reviewing submissions (e.g., approve/reject and viewing all submissions) succeed for the admin and are rejected for non-admins.",
-        "No new frontend pages, buttons, or admin-management UI are added."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Ensure admin authorization state persists across canister upgrades so that admin access is not lost on redeploy.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "Pending review artworks are stored in the canister’s `submissions` map."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Admin status remains intact after an upgrade/redeploy (no need to re-bootstrap admin access).",
-        "If a state migration is required due to schema/state changes, provide it using the project’s conditional migration policy; otherwise, do not add a migration."
+        "The UI element corresponding to XPath /html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[2]/div[1]/div[1] is removed from the rendered header DOM in all authentication/role states.",
+        "After removal, the header layout reflows naturally with no empty gap where the element used to be (spacing between remaining header items is visually correct on both desktop and mobile breakpoints).",
+        "No other header elements outside the selected element are removed or redesigned as part of this change."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor with all logic in `backend/main.mo` (per project architecture).",
-    "Do not add or require any new admin-management UI (per user request).",
-    "Do not modify files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or anything in `frontend/src/components/ui` (immutable paths)."
+    "Apply the change ONLY to the selected element identified by XPath /html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[2]/div[1]/div[1].",
+    "Use English for any user-facing text.",
+    "Do not edit any files under frontend/src/components/ui or other paths listed as immutable in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Restoring previously uploaded artwork that was not persisted in Version 27/28.",
-    "Adding a UI to manage admins (add/remove/list admins).",
-    "Adding additional admin powers beyond full review permissions for artwork submissions unless already present."
+    "Implementing or changing an admin-role system for the provided principal.",
+    "Changing how principals are formatted or displayed elsewhere in the app (e.g., dialogs or profile pages).",
+    "Any backend changes (data model, authorization, persistence)."
   ],
   "imageRequirements": {
     "required": [],

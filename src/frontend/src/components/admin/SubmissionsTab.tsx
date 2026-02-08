@@ -17,7 +17,11 @@ import { formatGBP } from '../../utils/gbpMoney';
 import SoldArtworkImage from '../artworks/SoldArtworkImage';
 import ArtworkLightbox from '../images/ArtworkLightbox';
 
-export default function SubmissionsTab() {
+interface SubmissionsTabProps {
+  pendingOnly?: boolean;
+}
+
+export default function SubmissionsTab({ pendingOnly = false }: SubmissionsTabProps) {
   const { data: submissions, isLoading } = useGetAllSubmissions();
   const { mutate: approve, isPending: approving } = useApproveSubmission();
   const { mutate: reject, isPending: rejecting } = useRejectSubmission();
@@ -49,12 +53,21 @@ export default function SubmissionsTab() {
     );
   }
 
-  if (!submissions || submissions.length === 0) {
+  // Filter submissions if pendingOnly mode is enabled
+  const displayedSubmissions = pendingOnly
+    ? submissions?.filter((sub) => sub.status === SubmissionStatus.pending) || []
+    : submissions || [];
+
+  if (displayedSubmissions.length === 0) {
+    const emptyMessage = pendingOnly
+      ? 'There are no pending artwork submissions at this time.'
+      : 'There are no artwork submissions yet.';
+
     return (
       <Card>
         <CardHeader>
-          <CardTitle>No Submissions</CardTitle>
-          <CardDescription>There are no artwork submissions yet.</CardDescription>
+          <CardTitle>{pendingOnly ? 'No Pending Submissions' : 'No Submissions'}</CardTitle>
+          <CardDescription>{emptyMessage}</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -64,8 +77,10 @@ export default function SubmissionsTab() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Artwork Submissions</CardTitle>
-          <CardDescription>Review and manage artwork submissions</CardDescription>
+          <CardTitle>{pendingOnly ? 'Pending Submissions' : 'Artwork Submissions'}</CardTitle>
+          <CardDescription>
+            {pendingOnly ? 'Review pending artwork submissions' : 'Review and manage artwork submissions'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -75,13 +90,13 @@ export default function SubmissionsTab() {
                   <TableHead>Artwork</TableHead>
                   <TableHead>Artist</TableHead>
                   <TableHead>Price</TableHead>
-                  <TableHead>Status</TableHead>
+                  {!pendingOnly && <TableHead>Status</TableHead>}
                   <TableHead>Submitted</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {submissions.map((submission) => (
+                {displayedSubmissions.map((submission) => (
                   <TableRow key={Number(submission.id)}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -108,7 +123,7 @@ export default function SubmissionsTab() {
                     </TableCell>
                     <TableCell>{submission.artist.publicSiteUsername}</TableCell>
                     <TableCell>{formatGBP(submission.artwork.price)}</TableCell>
-                    <TableCell>{getStatusBadge(submission.status)}</TableCell>
+                    {!pendingOnly && <TableCell>{getStatusBadge(submission.status)}</TableCell>}
                     <TableCell>
                       {new Date(Number(submission.submittedAt) / 1000000).toLocaleDateString()}
                     </TableCell>

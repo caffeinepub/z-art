@@ -1,4 +1,24 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-remove-the-selected-header-element-at-xpath-html-1-body-1-div-1-div-1-header-1-div-1-div-2-div-1-div-1-entirely-and-let-the-surrounding-header-layout-collapse-naturally-no-reserved-space-the-removal-must-be-permanent-for-all-users-no-conditional-rendering-to-show-it-in-any-state",
+      "featureTitle": "Remove the selected header element at XPath /html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[2]/div[1]/div[1] entirely, and let the surrounding header layout collapse naturally (no reserved space). The removal must be permanent for all users (no conditional rendering to show it in any state).",
+      "files": [
+        "frontend/src/components/layout/SiteHeader.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

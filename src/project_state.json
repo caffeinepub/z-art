@@ -1,41 +1,29 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Artwork submission app with canister-persisted uploads and a pending-review workflow; add admin authorization so specified principals can approve/reject submissions.",
-  "architectural_notes": [
-    "Store pending-review artworks persistently in canister `submissions` map (e.g., `Map<Nat, ArtworkSubmission>` with status `#pending`).",
-    "Implement an `admins` list in the canister; gate review actions (approve/reject) to admins; add the user's Internet Identity principal to this list as a one-time backend change."
-  ],
-  "known_issues": [
-    "Previously uploaded artworks from Version 27/28 cannot be restored because they were not saved in persistent storage (temporary in-browser data was wiped on deployment)."
-  ],
+  "summary": "New project",
+  "architectural_notes": [],
+  "known_issues": [],
   "isFixRequest": false,
-  "existing_features": [],
-  "new_feature_requests": [
+  "existing_features": [
     {
-      "id": "AR-1",
-      "summary": "Add canister-level admins list and grant admins full review permissions (approve/reject pending artwork submissions) without adding new UI",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Add a canister-level admin authorization mechanism that allows the user to become an admin with full review permissions (approve/reject artwork submissions) without adding any new admin-management UI.",
+      "id": "feature-remove-the-selected-header-element-at-xpath-html-1-body-1-div-1-div-1-header-1-div-1-div-2-div-1-div-1-entirely-and-let-the-surrounding-header-layout-collapse-naturally-no-reserved-space-the-removal-must-be-permanent-for-all-users-no-conditional-rendering-to-show-it-in-any-state",
+      "title": "Remove the selected header element at XPath /html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[2]/div[1]/div[1] entirely, and let the surrounding header layout collapse naturally (no reserved space). The removal must be permanent for all users (no conditional rendering to show it in any state).",
       "reqIds": [
         "REQ-1"
       ],
-      "status": "pending"
-    },
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
     {
-      "id": "AR-3",
-      "summary": "Ensure admin authorization state persists across canister upgrades so that admin access is not lost on redeploy.",
-      "reqIds": [
-        "REQ-2"
-      ],
+      "id": "AR-1",
+      "summary": "Remove the selected header element entirely, let surrounding layout collapse, and make change permanent for all users",
+      "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Grant caller admin review permissions (no UI)",
+  "projectName": "Remove selected principal display element from the header",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -35,7 +35,7 @@ export default function AdminRouteGuard({ children }: AdminRouteGuardProps) {
             <ShieldAlert className="h-4 w-4" />
             <AlertTitle>Authentication Required</AlertTitle>
             <AlertDescription className="mt-2">
-              You need to be logged in to access the admin dashboard.
+              You need to be logged in to access this admin page.
             </AlertDescription>
           </Alert>
           <div className="flex gap-3 mt-6">
@@ -61,7 +61,7 @@ export default function AdminRouteGuard({ children }: AdminRouteGuardProps) {
             <ShieldAlert className="h-4 w-4" />
             <AlertTitle>Access Denied</AlertTitle>
             <AlertDescription className="mt-2">
-              You don't have permission to access the admin dashboard.
+              You don't have permission to access this admin page.
             </AlertDescription>
           </Alert>
           <Button
@@ -80,4 +80,3 @@ export default function AdminRouteGuard({ children }: AdminRouteGuardProps) {
   // Authenticated and admin - show content
   return <>{children}</>;
 }
-

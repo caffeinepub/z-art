@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Add a backend-only admin authorization mechanism so the caller can be recognized as an admin with full review permissions, with no new UI.
+**Goal:** Permanently remove the specified header element so the header reflows naturally without leaving any empty space.
 
 **Planned changes:**
-- Add canister-level admin authorization in `backend/main.mo`, including a way to bootstrap the specified Internet Identity principal as an admin.
-- Gate admin-only review operations (e.g., approve/reject submissions and viewing all submissions) behind an `isCallerAdmin()`-style check.
-- Persist the admin authorization state across canister upgrades (stable storage), adding a migration only if required by existing state/schema changes.
+- Remove the UI element at XPath `/html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[2]/div[1]/div[1]` from the header render output in all states (no conditional rendering).
+- Ensure the surrounding header layout collapses/reflows naturally with correct spacing across desktop and mobile breakpoints.
+- Keep all other header elements unchanged (no redesign or additional removals).
 
-**User-visible outcome:** After deployment, the user can log in with Internet Identity and backend admin-only review actions succeed for that admin identity and are rejected for non-admins, with no new frontend UI.
+**User-visible outcome:** The header no longer shows the removed element, and the remaining header items align correctly with no gap where it used to be.

@@ -1,8 +1,9 @@
 import { Link, useNavigate } from '@tanstack/react-router';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, ClipboardList, Info } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import LoginButton from '../auth/LoginButton';
+import MyIdDialog from '../auth/MyIdDialog';
 import { useAuthz } from '../../hooks/useAuthz';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 
@@ -47,23 +48,41 @@ export default function SiteHeader() {
               </Button>
             ))}
             {isAuthenticated && (
-              <Button
-                variant="ghost"
-                onClick={() => navigate({ to: '/profile' })}
-                className="text-sm font-medium"
-              >
-                <User className="mr-2 h-4 w-4" />
-                My Profile
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate({ to: '/profile' })}
+                  className="text-sm font-medium"
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  My Profile
+                </Button>
+                <MyIdDialog>
+                  <Button variant="ghost" className="text-sm font-medium">
+                    <Info className="mr-2 h-4 w-4" />
+                    My ID
+                  </Button>
+                </MyIdDialog>
+              </>
             )}
             {isAdmin && (
-              <Button
-                variant="ghost"
-                onClick={() => navigate({ to: '/admin' })}
-                className="text-sm font-medium"
-              >
-                Admin Dashboard
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate({ to: '/admin/pending-review' })}
+                  className="text-sm font-medium"
+                >
+                  <ClipboardList className="mr-2 h-4 w-4" />
+                  Pending Review
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate({ to: '/admin' })}
+                  className="text-sm font-medium"
+                >
+                  Admin Dashboard
+                </Button>
+              </>
             )}
           </nav>
 
@@ -100,29 +119,54 @@ export default function SiteHeader() {
               </Button>
             ))}
             {isAuthenticated && (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  navigate({ to: '/profile' });
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full justify-start text-sm font-medium"
-              >
-                <User className="mr-2 h-4 w-4" />
-                My Profile
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    navigate({ to: '/profile' });
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start text-sm font-medium"
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  My Profile
+                </Button>
+                <MyIdDialog>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full justify-start text-sm font-medium"
+                  >
+                    <Info className="mr-2 h-4 w-4" />
+                    My ID
+                  </Button>
+                </MyIdDialog>
+              </>
             )}
             {isAdmin && (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  navigate({ to: '/admin' });
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full justify-start text-sm font-medium"
-              >
-                Admin Dashboard
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    navigate({ to: '/admin/pending-review' });
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start text-sm font-medium"
+                >
+                  <ClipboardList className="mr-2 h-4 w-4" />
+                  Pending Review
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    navigate({ to: '/admin' });
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start text-sm font-medium"
+                >
+                  Admin Dashboard
+                </Button>
+              </>
             )}
             <div className="pt-2">
               <LoginButton />

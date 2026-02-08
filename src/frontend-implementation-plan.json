@@ -1,6 +1,23 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Grant caller admin review permissions (frontend-only: no changes required)",
-  "requirements": []
+  "title": "Remove principal display from header",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Permanently remove the header’s principal display element so the header reflows with no reserved space in all states.",
+      "acceptanceCriteria": [
+        "The UI element corresponding to XPath /html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[2]/div[1]/div[1] is removed from the rendered header DOM in all authentication/role states.",
+        "After removal, the header layout reflows naturally with no empty gap where the element used to be (spacing between remaining header items is visually correct on both desktop and mobile breakpoints).",
+        "No other header elements outside the selected element are removed or redesigned as part of this change."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/layout/SiteHeader.tsx",
+          "operation": "modify",
+          "description": "Remove the PrincipalDisplay import and permanently delete the PrincipalDisplay render blocks in both desktop and mobile header sections (the element matching the provided XPath), ensuring the surrounding flex layout collapses naturally with no reserved space and leaving all other header elements unchanged."
+        }
+      ]
+    }
+  ]
 }

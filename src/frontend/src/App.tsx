@@ -10,6 +10,7 @@ import ArtistsPage from './pages/ArtistsPage';
 import ArtistProfilePage from './pages/ArtistProfilePage';
 import SubmitArtworkPage from './pages/SubmitArtworkPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import PendingReviewPage from './pages/PendingReviewPage';
 import MyProfilePage from './pages/MyProfilePage';
 import EditArtistProfilePage from './pages/EditArtistProfilePage';
 import CreateArtistProfilePage from './pages/CreateArtistProfilePage';
@@ -98,6 +99,16 @@ const adminRoute = createRoute({
   ),
 });
 
+const pendingReviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/pending-review',
+  component: () => (
+    <AdminRouteGuard>
+      <PendingReviewPage />
+    </AdminRouteGuard>
+  ),
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   galleryRoute,
@@ -110,6 +121,7 @@ const routeTree = rootRoute.addChildren([
   createArtistProfileRoute,
   editArtistProfileRoute,
   adminRoute,
+  pendingReviewRoute,
 ]);
 
 const router = createRouter({ routeTree });
