@@ -4,10 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { formatGBP } from '../../utils/gbpMoney';
 import ArtworkImage from '../images/ArtworkImage';
 import ArtworkLightbox from '../images/ArtworkLightbox';
-import type { Artwork } from '../../backend';
+import type { PublicArtwork } from '../../backend';
 
 interface ArtworkCardProps {
-  artwork: Artwork;
+  artwork: PublicArtwork;
 }
 
 export default function ArtworkCard({ artwork }: ArtworkCardProps) {
@@ -22,6 +22,8 @@ export default function ArtworkCard({ artwork }: ArtworkCardProps) {
     e.stopPropagation();
     setLightboxOpen(true);
   };
+
+  const artistName = artwork.artist?.publicSiteUsername?.trim() || 'Unknown artist';
 
   return (
     <>
@@ -39,7 +41,7 @@ export default function ArtworkCard({ artwork }: ArtworkCardProps) {
         </div>
         <CardContent className="p-4">
           <h3 className="font-display text-xl font-semibold mb-1 line-clamp-1">{artwork.title}</h3>
-          <p className="text-sm text-muted-foreground mb-2">{artwork.artist.name}</p>
+          <p className="text-sm text-muted-foreground mb-2 line-clamp-1">{artistName}</p>
           <p className="text-lg font-semibold text-primary">
             {formatGBP(artwork.price)}
           </p>

@@ -11,6 +11,8 @@ import ArtistProfilePage from './pages/ArtistProfilePage';
 import SubmitArtworkPage from './pages/SubmitArtworkPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import MyProfilePage from './pages/MyProfilePage';
+import EditArtistProfilePage from './pages/EditArtistProfilePage';
+import CreateArtistProfilePage from './pages/CreateArtistProfilePage';
 import ProfileSetupModal from './components/auth/ProfileSetupModal';
 import { ProfileSetupProvider } from './components/auth/ProfileSetupProvider';
 import AdminRouteGuard from './components/auth/AdminRouteGuard';
@@ -74,6 +76,18 @@ const profileRoute = createRoute({
   component: MyProfilePage,
 });
 
+const createArtistProfileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/artist/profile/create',
+  component: CreateArtistProfilePage,
+});
+
+const editArtistProfileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/artist/profile/edit',
+  component: EditArtistProfilePage,
+});
+
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin',
@@ -93,6 +107,8 @@ const routeTree = rootRoute.addChildren([
   artistProfileRoute,
   submitRoute,
   profileRoute,
+  createArtistProfileRoute,
+  editArtistProfileRoute,
   adminRoute,
 ]);
 

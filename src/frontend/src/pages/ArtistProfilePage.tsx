@@ -1,20 +1,30 @@
 import { useParams, useNavigate } from '@tanstack/react-router';
-import { useArtistById } from '../hooks/useArtists';
+import { useArtistById, useGetCallerArtistProfile } from '../hooks/useArtists';
 import { useArtworks } from '../hooks/useArtworks';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Loader2, ExternalLink, Palette } from 'lucide-react';
 import ArtworkCard from '../components/gallery/ArtworkCard';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
 
 export default function ArtistProfilePage() {
   const { artistId } = useParams({ from: '/artist/$artistId' });
   const navigate = useNavigate();
   const { data: artist, isLoading: artistLoading } = useArtistById(BigInt(artistId));
   const { data: allArtworks } = useArtworks();
+  const { identity } = useInternetIdentity();
+  const { data: callerArtistProfile, isLoading: callerProfileLoading } = useGetCallerArtistProfile();
+
+  const isAuthenticated = !!identity;
 
   // Filter artworks by this artist
   const artistArtworks = allArtworks?.filter(
     (artwork) => Number(artwork.artist.id) === Number(artistId)
   );
+
+  // Check if the viewer is the owner of this profile
+  const isOwner = isAuthenticated && 
+    callerArtistProfile && 
+    Number(callerArtistProfile.id) === Number(artistId);
 
   if (artistLoading) {
     return (
@@ -50,7 +60,7 @@ export default function ArtistProfilePage() {
       </Button>
 
       <div className="max-w-4xl mb-12">
-        <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">{artist.name}</h1>
+        <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">{artist.publicSiteUsername}</h1>
         <p className="text-lg text-muted-foreground mb-6">{artist.bio}</p>
         {artist.website && artist.website.trim() && (
           <a
@@ -77,6 +87,19 @@ export default function ArtistProfilePage() {
       ) : (
         <div className="text-center py-12 bg-muted/30 rounded-lg">
           <p className="text-muted-foreground">No artworks available yet</p>
+        </div>
+      )}
+
+      {isOwner && !callerProfileLoading && (
+        <div className="mt-12 pt-8 border-t border-border/40 flex justify-center">
+          <Button
+            onClick={() => navigate({ to: '/artist/profile/edit' })}
+            variant="outline"
+            size="lg"
+          >
+            <Palette className="mr-2 h-5 w-5" />
+            Edit Artist Profile
+          </Button>
         </div>
       )}
     </div>

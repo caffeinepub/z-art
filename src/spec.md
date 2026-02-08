@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Make gallery and artist browsing fully public, while requiring a completed profile only when users upload or interact (e.g., purchase inquiry).
+**Goal:** Add support for a private internal artist profile name and a unique public site username, and update the new profile creation flow and public displays to use the public username.
 
 **Planned changes:**
-- Allow anonymous and profile-incomplete authenticated users to browse: Gallery, Artwork details, Artists list, and Artist profile pages without being blocked by profile setup gating.
-- Change profile setup gating so it is not enforced site-wide during browsing; instead, enforce profile completion only at restricted actions (upload flow and interaction flows).
-- Gate purchase inquiry on the artwork detail page: require login first, then require a completed profile before submission.
-- Fix the Artists page rendering so it consistently displays the full set of artists returned by the backend (no unintended filtering/caching drops).
+- Update backend artist profile model and APIs to store both `profileName` (private) and `username` (public), including a public profile view that excludes `profileName`.
+- Enforce uniqueness of `username` on create/update and return a clear, user-readable error when taken.
+- Build a new frontend artist profile creation flow that collects both fields, validates the username client-side, and surfaces backend uniqueness errors.
+- Update public-facing UI surfaces to display `artist.username` and ensure `profileName` is only visible in owner-only views.
 
-**User-visible outcome:** Anyone can browse all artworks and artists without signing in or completing a profile; signing in and completing a profile is only required when uploading content or submitting a purchase inquiry.
+**User-visible outcome:** Users can create an artist profile with a private internal name and a unique public username; public pages show the username, while the private name is only visible to the signed-in owner.

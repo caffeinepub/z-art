@@ -16,9 +16,10 @@ export const UserRole = IDL.Variant({
 export const ArtistProfile = IDL.Record({
   'id' : IDL.Nat,
   'bio' : IDL.Text,
-  'name' : IDL.Text,
   'createdAt' : IDL.Int,
+  'publicSiteUsername' : IDL.Text,
   'website' : IDL.Text,
+  'profileName' : IDL.Text,
 });
 export const Artwork = IDL.Record({
   'id' : IDL.Nat,
@@ -52,6 +53,22 @@ export const ArtworkSubmission = IDL.Record({
   'artistPrincipal' : IDL.Principal,
   'artist' : ArtistProfile,
 });
+export const PublicArtistProfile = IDL.Record({
+  'id' : IDL.Nat,
+  'bio' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'publicSiteUsername' : IDL.Text,
+  'website' : IDL.Text,
+});
+export const PublicArtwork = IDL.Record({
+  'id' : IDL.Nat,
+  'title' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'description' : IDL.Text,
+  'imageUrl' : IDL.Text,
+  'artist' : PublicArtistProfile,
+  'price' : IDL.Nat,
+});
 export const UserProfile = IDL.Record({
   'bio' : IDL.Text,
   'name' : IDL.Text,
@@ -64,7 +81,11 @@ export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'approveSubmission' : IDL.Func([IDL.Nat], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-  'createArtistProfile' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+  'createArtistProfile' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [],
+      [],
+    ),
   'createPurchaseInquiry' : IDL.Func(
       [IDL.Nat, IDL.Text, IDL.Text, IDL.Text],
       [],
@@ -83,9 +104,9 @@ export const idlService = IDL.Service({
     ),
   'getAllSubmissions' : IDL.Func([], [IDL.Vec(ArtworkSubmission)], ['query']),
   'getArtistProfileByCaller' : IDL.Func([], [ArtistProfile], ['query']),
-  'getArtistProfiles' : IDL.Func([], [IDL.Vec(ArtistProfile)], ['query']),
-  'getArtworkById' : IDL.Func([IDL.Nat], [Artwork], ['query']),
-  'getArtworks' : IDL.Func([], [IDL.Vec(Artwork)], ['query']),
+  'getArtistProfiles' : IDL.Func([], [IDL.Vec(PublicArtistProfile)], ['query']),
+  'getArtworkById' : IDL.Func([IDL.Nat], [PublicArtwork], ['query']),
+  'getArtworks' : IDL.Func([], [IDL.Vec(PublicArtwork)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getInquiriesByArtwork' : IDL.Func(
@@ -113,6 +134,11 @@ export const idlService = IDL.Service({
       [SubmissionResult],
       [],
     ),
+  'updateArtistProfile' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [],
+      [],
+    ),
 });
 
 export const idlInitArgs = [];
@@ -126,9 +152,10 @@ export const idlFactory = ({ IDL }) => {
   const ArtistProfile = IDL.Record({
     'id' : IDL.Nat,
     'bio' : IDL.Text,
-    'name' : IDL.Text,
     'createdAt' : IDL.Int,
+    'publicSiteUsername' : IDL.Text,
     'website' : IDL.Text,
+    'profileName' : IDL.Text,
   });
   const Artwork = IDL.Record({
     'id' : IDL.Nat,
@@ -162,6 +189,22 @@ export const idlFactory = ({ IDL }) => {
     'artistPrincipal' : IDL.Principal,
     'artist' : ArtistProfile,
   });
+  const PublicArtistProfile = IDL.Record({
+    'id' : IDL.Nat,
+    'bio' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'publicSiteUsername' : IDL.Text,
+    'website' : IDL.Text,
+  });
+  const PublicArtwork = IDL.Record({
+    'id' : IDL.Nat,
+    'title' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'description' : IDL.Text,
+    'imageUrl' : IDL.Text,
+    'artist' : PublicArtistProfile,
+    'price' : IDL.Nat,
+  });
   const UserProfile = IDL.Record({
     'bio' : IDL.Text,
     'name' : IDL.Text,
@@ -174,7 +217,11 @@ export const idlFactory = ({ IDL }) => {
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'approveSubmission' : IDL.Func([IDL.Nat], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-    'createArtistProfile' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+    'createArtistProfile' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [],
+        [],
+      ),
     'createPurchaseInquiry' : IDL.Func(
         [IDL.Nat, IDL.Text, IDL.Text, IDL.Text],
         [],
@@ -193,9 +240,13 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getAllSubmissions' : IDL.Func([], [IDL.Vec(ArtworkSubmission)], ['query']),
     'getArtistProfileByCaller' : IDL.Func([], [ArtistProfile], ['query']),
-    'getArtistProfiles' : IDL.Func([], [IDL.Vec(ArtistProfile)], ['query']),
-    'getArtworkById' : IDL.Func([IDL.Nat], [Artwork], ['query']),
-    'getArtworks' : IDL.Func([], [IDL.Vec(Artwork)], ['query']),
+    'getArtistProfiles' : IDL.Func(
+        [],
+        [IDL.Vec(PublicArtistProfile)],
+        ['query'],
+      ),
+    'getArtworkById' : IDL.Func([IDL.Nat], [PublicArtwork], ['query']),
+    'getArtworks' : IDL.Func([], [IDL.Vec(PublicArtwork)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getInquiriesByArtwork' : IDL.Func(
@@ -221,6 +272,11 @@ export const idlFactory = ({ IDL }) => {
     'submitArtwork' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
         [SubmissionResult],
+        [],
+      ),
+    'updateArtistProfile' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [],
         [],
       ),
   });

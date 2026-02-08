@@ -1,64 +1,43 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T07:04:01.640Z",
-  "summary": "Diff adds an on-demand ProfileSetupProvider and updates profile modal behavior so it only opens when explicitly triggered; submission and purchase inquiry flows are gated by auth/profile checks. Artists list rendering was updated to map over the returned artists array without additional filtering, but there is limited evidence that all public-browsing flows (gallery/artwork/artist profile) are fully accessible without auth/profile, and the artists “incomplete list” root cause (filtering/caching) may not be fully addressed.",
+  "generatedAt": "2026-02-08T13:05:25.151Z",
+  "summary": "Diff implements new frontend create/edit flows for artist profiles with separate private profileName and publicSiteUsername fields, and updates several public-facing UI surfaces to display publicSiteUsername. Backend types for ArtistProfile/PublicArtistProfile and public artwork/inquiry views were introduced, and a migration module was added, but the diff excerpt does not provide enough evidence that backend APIs enforce username uniqueness or that all relevant endpoints return only the public view on public calls.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Allow all gallery browsing flows to work without requiring authentication or a completed user profile (Gallery, Artwork details, Artists list, Artist profile).",
-      "reason": "The diff does not show changes to the Gallery page data fetching or the artwork/artist profile data fetching hooks to ensure they work for anonymous users; only Artists list hook changes are visible. If other hooks/pages still depend on authenticated identity/actor, browsing could still be blocked.",
+      "requirement": "Backend APIs must return a public artist profile view (excluding private profileName) for public pages/lists, and only allow full ArtistProfile (including profileName) on caller-only endpoints.",
+      "reason": "While backend/main.mo defines ArtistProfile and PublicArtistProfile types plus helper conversion functions, the diff summary is truncated before showing the actual query/update methods (e.g., getArtistProfiles / getArtistProfileById) and what they return, so there is insufficient evidence that public endpoints exclusively return the public view and caller-only endpoints return the full profile.",
       "evidence": [
-        "frontend/src/hooks/useArtists.ts",
-        "frontend/src/pages/ArtistsPage.tsx",
-        "frontend/src/pages/ArtworkDetailsPage.tsx"
+        "backend/main.mo (truncated)"
       ]
     },
     {
-      "id": "REQ-4",
-      "requirement": "Fix Artists page incomplete listing by ensuring the frontend always renders the full set of artists returned by the backend and resolving filtering/caching logic that could cause the list to appear incomplete.",
-      "reason": "While ArtistsPage now directly maps over `artists`, `useArtists` introduces a 30s `staleTime` cache and `useArtistById` derives an artist from the cached list rather than querying the backend by ID. The diff does not show explicit handling to prevent entries from dropping on refresh/navigation or to validate/render exactly N results returned by the backend across navigation events.",
+      "id": "REQ-2",
+      "requirement": "Enforce uniqueness of the public site username when creating or updating an artist profile, and return a clear user-readable error on collisions.",
+      "reason": "The diff summary does not show createArtistProfile/updateArtistProfile backend implementation logic or any explicit username index/check across principals, nor does it show the collision error message text. Because backend/main.mo content is truncated, uniqueness enforcement cannot be confirmed from the provided evidence.",
       "evidence": [
-        "frontend/src/hooks/useArtists.ts",
-        "frontend/src/pages/ArtistsPage.tsx"
+        "backend/main.mo (truncated)"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "Admin dashboard updated to include a ReplaceDatasetControl component prominently positioned above tabs.",
-      "reason": "Not requested by any REQ (scope is public browsing + profile gating + artists list completeness).",
-      "evidence": [
-        "frontend-file-summaries.txt (AdminDashboardPage entry)"
-      ]
-    },
-    {
-      "description": "Gallery aesthetic/theme work (global OKLCH palette, Tailwind theme tokens, custom fonts).",
-      "reason": "Not requested; requirements are functional gating and artists list correctness.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/index.css, frontend/tailwind.config.js entries)"
-      ]
-    },
-    {
-      "description": "Submit artwork form enhancements (sessionStorage draft persistence, explicit replace/remove controls, artist profile creation auto-exit, discard draft action).",
-      "reason": "Not requested; REQ-2 only requires gating submit behind profile completion without a global forced modal.",
-      "evidence": [
-        "frontend-file-summaries.txt (SubmitArtworkForm entry)"
-      ]
-    }
-  ],
-  "confidence": 0.62,
+  "hallucinated_features": [],
+  "confidence": 0.6,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
     "frontend/src/App.tsx",
-    "frontend/src/components/auth/ProfileSetupModal.tsx",
-    "frontend/src/components/auth/ProfileSetupProvider.tsx",
-    "frontend/src/components/inquiries/PurchaseInquiryDialog.tsx",
+    "frontend/src/components/admin/SubmissionsTab.tsx",
+    "frontend/src/components/artists/CreateArtistProfileForm.tsx",
+    "frontend/src/components/artists/EditArtistProfileForm.tsx",
+    "frontend/src/components/gallery/ArtworkCard.tsx",
     "frontend/src/hooks/useArtists.ts",
+    "frontend/src/pages/ArtistProfilePage.tsx",
     "frontend/src/pages/ArtistsPage.tsx",
     "frontend/src/pages/ArtworkDetailsPage.tsx",
-    "frontend/src/pages/MyProfilePage.tsx",
-    "frontend/src/pages/SubmitArtworkPage.tsx",
+    "frontend/src/pages/CreateArtistProfilePage.tsx",
+    "frontend/src/pages/EditArtistProfilePage.tsx",
     "project_state.json"
   ]
 }

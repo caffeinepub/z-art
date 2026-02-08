@@ -1,91 +1,96 @@
 {
   "kind": "build_request",
-  "title": "Make gallery public; require profile only for uploads and interactions",
+  "title": "Add private profile name plus unique public site username in new profile creation flow",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Allow all gallery browsing flows to work without requiring authentication or a completed user profile, including: viewing the Gallery page, viewing an Artwork details page, viewing the Artists list, and viewing an individual Artist profile page.",
-      "target": "frontend",
+      "text": "Update the backend artist-profile data model and APIs to support both (a) a private internal profile name and (b) a public site username used for display across the site.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "recent-6"
+          "msg-3"
         ],
         "quotes": [
-          "All gallery content viewable without a profile. Profile needed for uploading content and interactions."
+          "When profiles are created allow both a name for the profile plus a site username for display",
+          "Unique user names",
+          "site username public only",
+          "brand new profile flow"
         ]
       },
       "acceptanceCriteria": [
-        "A signed-out (anonymous) user can visit /gallery and see artworks without being prompted to create a profile.",
-        "A signed-out (anonymous) user can open /artwork/:artworkId and view all artwork details without being prompted to create a profile.",
-        "A signed-out (anonymous) user can visit /artists and /artist/:artistId and view artist information without being prompted to create a profile.",
-        "An authenticated user who has not created a user profile is not blocked by any profile setup modal while browsing /gallery, /artwork/:artworkId, /artists, or /artist/:artistId."
+        "Backend exposes an artist profile type that contains both a private profileName and a public username.",
+        "Backend exposes a public artist profile view that does not include the private profileName.",
+        "Calls that return artist/artist lists used for public pages return only the public view (no private profileName).",
+        "Caller-only endpoints for the signed-in artist can return the full artist profile including private profileName."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Change the profile setup gating so that the profile setup modal is not shown globally during normal browsing; instead, require a completed user profile only at the point of restricted actions (uploading content and interactions).",
-      "target": "frontend",
+      "text": "Enforce uniqueness of the public site username when creating or updating an artist profile, and return a clear error when the username is already taken.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "recent-6"
+          "msg-3"
         ],
         "quotes": [
-          "Profile needed for uploading content and interactions."
+          "Unique user names"
         ]
       },
       "acceptanceCriteria": [
-        "The profile setup modal does not automatically open site-wide just because an authenticated user lacks a profile.",
-        "When an authenticated user without a profile navigates to /submit, the UI blocks submission and clearly indicates they must complete their profile (existing behavior can remain, but must not rely on a site-wide forced modal).",
-        "The app still supports completing the user profile via the existing profile setup UI, using English user-facing text."
+        "Creating an artist profile fails if any existing artist profile already uses the requested username.",
+        "Updating an artist profile fails if the new username is used by a different principal.",
+        "The error message for collisions is user-readable (e.g., 'Username already taken. Please choose a different one.')."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Require a completed user profile for interaction flows in the artwork experience (at minimum: submitting a purchase inquiry). If a user is not authenticated or has no profile, the UI must prevent the interaction and prompt them to log in and/or complete their profile.",
+      "text": "Implement a brand-new artist profile creation flow in the frontend that collects both fields: a private profile name and a public site username, with appropriate form validation and error handling.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-6"
+          "msg-3"
         ],
         "quotes": [
-          "Profile needed for uploading content and interactions."
+          "When profiles are created allow both a name for the profile plus a site username for display",
+          "brand new profile flow"
         ]
       },
       "acceptanceCriteria": [
-        "From an artwork detail page, a signed-out user cannot submit a purchase inquiry; the UI prompts them to log in first.",
-        "From an artwork detail page, an authenticated user without a profile cannot submit a purchase inquiry; the UI prompts them to complete their profile first.",
-        "An authenticated user with a completed profile can submit a purchase inquiry successfully (no regression)."
+        "The creation form includes separate inputs for profile name (private/internal) and username (public display name).",
+        "The username field has client-side validation (required; allowed character set; length constraints) and shows inline validation errors.",
+        "On username uniqueness errors returned by the backend, the UI displays the backend error message without crashing.",
+        "On successful creation, the UI shows a success confirmation and refreshes any cached artist/profile data that depends on the artist profile."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Fix the issue where the Artists page does not list all expected artists by ensuring the frontend always renders the full set of artists returned by the backend and by resolving any filtering/caching logic that could cause the list to appear incomplete.",
+      "text": "Ensure that public-facing pages/components display the public site username and never display the private profile name for any artist other than the authenticated owner view.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-3"
+          "msg-3"
         ],
         "quotes": [
-          "Not all artists are listed"
+          "site username public only"
         ]
       },
       "acceptanceCriteria": [
-        "/artists displays all artist profiles returned by the backend call that powers the Artists page.",
-        "Refreshing the page or navigating away/back does not cause the Artists list to drop entries unexpectedly.",
-        "If the backend returns N artists, the UI renders N artist cards (unless intentionally paginated, which is not required here)."
+        "Artists list/cards and any artwork/artist display surfaces show artist.username as the display name.",
+        "The artist public profile page shows the username (and other public fields) but not the private profileName.",
+        "The edit/owner-only artist profile view allows viewing/editing both profileName (private) and username (public)."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui (read-only).",
-    "Do not modify immutable frontend hook files: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx.",
-    "Backend must remain a single Motoko actor in backend/main.mo; only add migration.mo if a state upgrade is required."
+    "Backend must remain a single Motoko actor in backend/main.mo; create backend/migration.mo only if an upgrade requires state migration.",
+    "Do not edit files under frontend/src/components/ui or any frontend paths listed as immutable in SYSTEM_CONTEXT.",
+    "Use English for all user-facing text."
   ],
   "nonGoals": [
-    "Adding new interaction types (likes, comments, follows) beyond gating the existing interaction flow(s).",
-    "Changing backend authorization rules for public reads (artworks/artists) unless required to make public viewing work.",
-    "Adding third-party authentication providers (only Internet Identity is supported)."
+    "Implement third-party authentication (only Internet Identity is supported).",
+    "Add real-time features (e.g., WebSockets) for username availability checks.",
+    "Introduce external databases or non-Motoko backend services."
   ],
   "imageRequirements": {
     "required": [],

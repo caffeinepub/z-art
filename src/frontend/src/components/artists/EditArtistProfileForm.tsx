@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,11 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { useCreateArtistProfile } from '../../hooks/useArtists';
-
-interface CreateArtistProfileFormProps {
-  onSuccess?: () => void;
-}
+import { useGetCallerArtistProfile, useUpdateArtistProfile } from '../../hooks/useArtists';
 
 interface FormData {
   publicSiteUsername: string;
@@ -20,8 +16,9 @@ interface FormData {
   website: string;
 }
 
-export default function CreateArtistProfileForm({ onSuccess }: CreateArtistProfileFormProps) {
-  const { mutate: createProfile, isPending } = useCreateArtistProfile();
+export default function EditArtistProfileForm() {
+  const { data: artistProfile, isLoading: profileLoading } = useGetCallerArtistProfile();
+  const { mutate: updateProfile, isPending } = useUpdateArtistProfile();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -29,13 +26,26 @@ export default function CreateArtistProfileForm({ onSuccess }: CreateArtistProfi
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<FormData>();
+
+  // Load existing profile data
+  useEffect(() => {
+    if (artistProfile) {
+      reset({
+        publicSiteUsername: artistProfile.publicSiteUsername,
+        profileName: artistProfile.profileName,
+        bio: artistProfile.bio,
+        website: artistProfile.website,
+      });
+    }
+  }, [artistProfile, reset]);
 
   const onSubmit = (data: FormData) => {
     setError(null);
     setSuccess(false);
 
-    createProfile(
+    updateProfile(
       {
         profileName: data.profileName.trim(),
         publicSiteUsername: data.publicSiteUsername.trim(),
@@ -45,25 +55,29 @@ export default function CreateArtistProfileForm({ onSuccess }: CreateArtistProfi
       {
         onSuccess: () => {
           setSuccess(true);
-          if (onSuccess) {
-            setTimeout(() => {
-              onSuccess();
-            }, 1500);
-          }
+          setTimeout(() => setSuccess(false), 3000);
         },
         onError: (err) => {
-          setError(err instanceof Error ? err.message : 'Failed to create artist profile');
+          setError(err instanceof Error ? err.message : 'Failed to update artist profile');
         },
       }
     );
   };
 
-  if (success) {
+  if (profileLoading) {
     return (
-      <Alert className="border-primary bg-primary/5">
-        <CheckCircle2 className="h-4 w-4 text-primary" />
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!artistProfile) {
+    return (
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Artist profile created successfully! Redirecting...
+          No artist profile found. Please create one first.
         </AlertDescription>
       </Alert>
     );
@@ -72,13 +86,22 @@ export default function CreateArtistProfileForm({ onSuccess }: CreateArtistProfi
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create Artist Profile</CardTitle>
+        <CardTitle>Edit Artist Profile</CardTitle>
         <CardDescription>
-          Set up your artist profile to start submitting artwork to Z'art.
+          Update your artist profile information. Changes will be reflected across the gallery.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {success && (
+            <Alert className="border-primary bg-primary/5">
+              <CheckCircle2 className="h-4 w-4 text-primary" />
+              <AlertDescription>
+                Artist profile updated successfully!
+              </AlertDescription>
+            </Alert>
+          )}
+
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
@@ -177,10 +200,10 @@ export default function CreateArtistProfileForm({ onSuccess }: CreateArtistProfi
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Profile...
+                Saving Changes...
               </>
             ) : (
-              'Create Artist Profile'
+              'Save Changes'
             )}
           </Button>
         </form>

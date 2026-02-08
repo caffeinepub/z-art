@@ -89,6 +89,22 @@ export class ExternalBlob {
         return this;
     }
 }
+export interface PublicArtistProfile {
+    id: bigint;
+    bio: string;
+    createdAt: bigint;
+    publicSiteUsername: string;
+    website: string;
+}
+export interface PublicArtwork {
+    id: bigint;
+    title: string;
+    createdAt: bigint;
+    description: string;
+    imageUrl: string;
+    artist: PublicArtistProfile;
+    price: bigint;
+}
 export interface Artwork {
     id: bigint;
     title: string;
@@ -128,9 +144,10 @@ export interface UserProfile {
 export interface ArtistProfile {
     id: bigint;
     bio: string;
-    name: string;
     createdAt: bigint;
+    publicSiteUsername: string;
     website: string;
+    profileName: string;
 }
 export enum SubmissionStatus {
     pending = "pending",
@@ -146,16 +163,16 @@ export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     approveSubmission(submissionId: bigint): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    createArtistProfile(name: string, bio: string, website: string): Promise<void>;
+    createArtistProfile(profileName: string, publicSiteUsername: string, bio: string, website: string): Promise<void>;
     createPurchaseInquiry(artworkId: bigint, buyerName: string, buyerEmail: string, message: string): Promise<void>;
     deleteArtwork(artworkId: bigint): Promise<void>;
     editArtwork(artworkId: bigint, newTitle: string, newDescription: string, newImageUrl: string, newPrice: bigint): Promise<void>;
     getAllPurchaseInquiries(): Promise<Array<PurchaseInquiry>>;
     getAllSubmissions(): Promise<Array<ArtworkSubmission>>;
     getArtistProfileByCaller(): Promise<ArtistProfile>;
-    getArtistProfiles(): Promise<Array<ArtistProfile>>;
-    getArtworkById(artworkId: bigint): Promise<Artwork>;
-    getArtworks(): Promise<Array<Artwork>>;
+    getArtistProfiles(): Promise<Array<PublicArtistProfile>>;
+    getArtworkById(artworkId: bigint): Promise<PublicArtwork>;
+    getArtworks(): Promise<Array<PublicArtwork>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getInquiriesByArtwork(artworkId: bigint): Promise<Array<PurchaseInquiry>>;
@@ -167,6 +184,7 @@ export interface backendInterface {
     replaceDataset(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     submitArtwork(title: string, description: string, imageUrl: string, price: bigint): Promise<SubmissionResult>;
+    updateArtistProfile(newProfileName: string, newPublicSiteUsername: string, newBio: string, newWebsite: string): Promise<void>;
 }
 import type { ArtistProfile as _ArtistProfile, Artwork as _Artwork, ArtworkSubmission as _ArtworkSubmission, SubmissionStatus as _SubmissionStatus, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -213,17 +231,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async createArtistProfile(arg0: string, arg1: string, arg2: string): Promise<void> {
+    async createArtistProfile(arg0: string, arg1: string, arg2: string, arg3: string): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.createArtistProfile(arg0, arg1, arg2);
+                const result = await this.actor.createArtistProfile(arg0, arg1, arg2, arg3);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createArtistProfile(arg0, arg1, arg2);
+            const result = await this.actor.createArtistProfile(arg0, arg1, arg2, arg3);
             return result;
         }
     }
@@ -311,7 +329,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async getArtistProfiles(): Promise<Array<ArtistProfile>> {
+    async getArtistProfiles(): Promise<Array<PublicArtistProfile>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getArtistProfiles();
@@ -325,7 +343,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async getArtworkById(arg0: bigint): Promise<Artwork> {
+    async getArtworkById(arg0: bigint): Promise<PublicArtwork> {
         if (this.processError) {
             try {
                 const result = await this.actor.getArtworkById(arg0);
@@ -339,7 +357,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async getArtworks(): Promise<Array<Artwork>> {
+    async getArtworks(): Promise<Array<PublicArtwork>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getArtworks();
@@ -504,6 +522,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.submitArtwork(arg0, arg1, arg2, arg3);
+            return result;
+        }
+    }
+    async updateArtistProfile(arg0: string, arg1: string, arg2: string, arg3: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateArtistProfile(arg0, arg1, arg2, arg3);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateArtistProfile(arg0, arg1, arg2, arg3);
             return result;
         }
     }

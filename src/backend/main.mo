@@ -8,12 +8,12 @@ import Nat "mo:core/Nat";
 import Int "mo:core/Int";
 import Array "mo:core/Array";
 import Order "mo:core/Order";
-
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
+import Migration "migration";
 
-
-
+// Use migration module for upgrade
+(with migration = Migration.run)
 actor {
   public type UserProfile = {
     name : Text;
@@ -24,7 +24,17 @@ actor {
 
   public type ArtistProfile = {
     id : Nat;
-    name : Text;
+    profileName : Text;
+    publicSiteUsername : Text;
+    bio : Text;
+    website : Text;
+    createdAt : Int;
+  };
+
+  // Public view of artist profile (excludes private profileName)
+  public type PublicArtistProfile = {
+    id : Nat;
+    publicSiteUsername : Text;
     bio : Text;
     website : Text;
     createdAt : Int;
@@ -41,6 +51,17 @@ actor {
     imageUrl : Text;
     price : Nat;
     artist : ArtistProfile;
+    createdAt : Int;
+  };
+
+  // Public view of artwork (with public artist profile)
+  public type PublicArtwork = {
+    id : Nat;
+    title : Text;
+    description : Text;
+    imageUrl : Text;
+    price : Nat;
+    artist : PublicArtistProfile;
     createdAt : Int;
   };
 
@@ -91,6 +112,17 @@ actor {
     createdAt : Int;
   };
 
+  // Public view of purchase inquiry (with public artwork)
+  public type PublicPurchaseInquiry = {
+    id : Nat;
+    artworkId : Nat;
+    artwork : PublicArtwork;
+    buyerName : Text;
+    buyerEmail : Text;
+    message : Text;
+    createdAt : Int;
+  };
+
   var userProfiles : Map.Map<Principal, UserProfile> = Map.empty<Principal, UserProfile>();
   var artistProfiles : Map.Map<Principal, ArtistProfile> = Map.empty<Principal, ArtistProfile>();
   var artworks : Map.Map<Nat, Artwork> = Map.empty<Nat, Artwork>();
@@ -103,6 +135,30 @@ actor {
 
   let accessControlState : AccessControl.AccessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
+
+  // Helper function to convert ArtistProfile to PublicArtistProfile
+  func toPublicArtistProfile(profile : ArtistProfile) : PublicArtistProfile {
+    {
+      id = profile.id;
+      publicSiteUsername = profile.publicSiteUsername;
+      bio = profile.bio;
+      website = profile.website;
+      createdAt = profile.createdAt;
+    };
+  };
+
+  // Helper function to convert Artwork to PublicArtwork
+  func toPublicArtwork(artwork : Artwork) : PublicArtwork {
+    {
+      id = artwork.id;
+      title = artwork.title;
+      description = artwork.description;
+      imageUrl = artwork.imageUrl;
+      price = artwork.price;
+      artist = toPublicArtistProfile(artwork.artist);
+      createdAt = artwork.createdAt;
+    };
+  };
 
   // User Profile Management (required by frontend)
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
@@ -128,7 +184,8 @@ actor {
 
   // Artist Profile Management
   public shared ({ caller }) func createArtistProfile(
-    name : Text,
+    profileName : Text,
+    publicSiteUsername : Text,
     bio : Text,
     website : Text,
   ) : async () {
@@ -136,16 +193,144 @@ actor {
       Runtime.trap("Unauthorized: Only authenticated users can create artist profiles");
     };
 
-    let profile : ArtistProfile = {
+    // Check if publicSiteUsername already exists
+    for ((_principal, profile) in artistProfiles.entries()) {
+      if (profile.publicSiteUsername == publicSiteUsername) {
+        Runtime.trap("Username already taken. Please choose a different one.");
+      };
+    };
+
+    let newProfile : ArtistProfile = {
       id = artistProfiles.size() + 1;
-      name;
+      profileName;
+      publicSiteUsername;
       bio;
       website;
       createdAt = Time.now();
     };
-    artistProfiles.add(caller, profile);
+    artistProfiles.add(caller, newProfile);
   };
 
+  public shared ({ caller }) func updateArtistProfile(
+    newProfileName : Text,
+    newPublicSiteUsername : Text,
+    newBio : Text,
+    newWebsite : Text,
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can update artist profiles");
+    };
+
+    // Check if new publicSiteUsername is already taken by a different artist
+    for ((principal, profile) in artistProfiles.entries()) {
+      if (profile.publicSiteUsername == newPublicSiteUsername and principal != caller) {
+        Runtime.trap("Username already taken. Please choose a different one.");
+      };
+    };
+
+    let existingProfile = switch (artistProfiles.get(caller)) {
+      case (null) { Runtime.trap("Artist profile does not exist. Please create one first.") };
+      case (?profile) { profile };
+    };
+
+    let updatedProfile : ArtistProfile = {
+      id = existingProfile.id;
+      profileName = newProfileName;
+      publicSiteUsername = newPublicSiteUsername;
+      bio = newBio;
+      website = newWebsite;
+      createdAt = existingProfile.createdAt;
+    };
+
+    artistProfiles.add(caller, updatedProfile);
+
+    // Update artworks with new artist profile
+    let updatedArtworks = artworks.map<Nat, Artwork, Artwork>(
+      func(_id, artwork) {
+        if (artwork.artist.id == existingProfile.id) {
+          {
+            id = artwork.id;
+            title = artwork.title;
+            description = artwork.description;
+            imageUrl = artwork.imageUrl;
+            price = artwork.price;
+            artist = updatedProfile;
+            createdAt = artwork.createdAt;
+          };
+        } else {
+          artwork;
+        };
+      }
+    );
+    artworks.clear();
+    for ((k, v) in updatedArtworks.entries()) {
+      artworks.add(k, v);
+    };
+
+    // Update submissions with new artist profile
+    let updatedSubmissions = submissions.map<Nat, ArtworkSubmission, ArtworkSubmission>(
+      func(_id, sub) {
+        if (sub.artist.id == existingProfile.id) {
+          {
+            id = sub.id;
+            artwork = {
+              id = sub.artwork.id;
+              title = sub.artwork.title;
+              description = sub.artwork.description;
+              imageUrl = sub.artwork.imageUrl;
+              price = sub.artwork.price;
+              artist = updatedProfile;
+              createdAt = sub.artwork.createdAt;
+            };
+            artistPrincipal = sub.artistPrincipal;
+            artist = updatedProfile;
+            status = sub.status;
+            submittedAt = sub.submittedAt;
+            reviewedAt = sub.reviewedAt;
+          };
+        } else {
+          sub;
+        };
+      }
+    );
+    submissions.clear();
+    for ((k, v) in updatedSubmissions.entries()) {
+      submissions.add(k, v);
+    };
+
+    // Update inquiries with new artist profile in artwork
+    let updatedInquiries = inquiries.map<Nat, PurchaseInquiry, PurchaseInquiry>(
+      func(_id, inquiry) {
+        if (inquiry.artwork.artist.id == existingProfile.id) {
+          {
+            id = inquiry.id;
+            artworkId = inquiry.artworkId;
+            artwork = {
+              id = inquiry.artwork.id;
+              title = inquiry.artwork.title;
+              description = inquiry.artwork.description;
+              imageUrl = inquiry.artwork.imageUrl;
+              price = inquiry.artwork.price;
+              artist = updatedProfile;
+              createdAt = inquiry.artwork.createdAt;
+            };
+            buyerName = inquiry.buyerName;
+            buyerEmail = inquiry.buyerEmail;
+            message = inquiry.message;
+            createdAt = inquiry.createdAt;
+          };
+        } else {
+          inquiry;
+        };
+      }
+    );
+    inquiries.clear();
+    for ((k, v) in updatedInquiries.entries()) {
+      inquiries.add(k, v);
+    };
+  };
+
+  // Returns full profile including private profileName (caller's own profile only)
   public query ({ caller }) func getArtistProfileByCaller() : async ArtistProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can view their artist profile");
@@ -157,8 +342,10 @@ actor {
     };
   };
 
-  public query func getArtistProfiles() : async [ArtistProfile] {
-    artistProfiles.values().toArray();
+  // Returns public profiles only (excludes private profileName)
+  public query func getArtistProfiles() : async [PublicArtistProfile] {
+    let publicProfiles = artistProfiles.values().map(toPublicArtistProfile);
+    publicProfiles.toArray();
   };
 
   // Artwork Submission
@@ -358,7 +545,7 @@ actor {
     };
   };
 
-  // View own submissions
+  // View own submissions (includes full artist profile with private profileName)
   public query ({ caller }) func getSubmissionsByCaller() : async [ArtworkSubmission] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can view their submissions");
@@ -372,7 +559,7 @@ actor {
     callerSubmissions.toArray();
   };
 
-  // Admin: View all submissions
+  // Admin: View all submissions (includes full artist profile with private profileName for admin purposes)
   public query ({ caller }) func getAllSubmissions() : async [ArtworkSubmission] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view all submissions");
@@ -428,17 +615,18 @@ actor {
     submissions.add(submissionId, updatedSubmission);
   };
 
-  // Public: View artwork by ID
-  public query func getArtworkById(artworkId : Nat) : async Artwork {
+  // Public: View artwork by ID (returns public view without private profileName)
+  public query func getArtworkById(artworkId : Nat) : async PublicArtwork {
     switch (artworks.get(artworkId)) {
       case (null) { Runtime.trap("Artwork does not exist") };
-      case (?artwork) { artwork };
+      case (?artwork) { toPublicArtwork(artwork) };
     };
   };
 
-  // Public: View all artworks
-  public query func getArtworks() : async [Artwork] {
-    artworks.values().toArray();
+  // Public: View all artworks (returns public view without private profileName)
+  public query func getArtworks() : async [PublicArtwork] {
+    let publicArtworks = artworks.values().map(toPublicArtwork);
+    publicArtworks.toArray();
   };
 
   // Public: Create purchase inquiry (anyone can inquire)
@@ -462,7 +650,7 @@ actor {
     nextInquiryId += 1;
   };
 
-  // Admin: View specific inquiry
+  // Admin: View specific inquiry (includes full artist profile for admin purposes)
   public query ({ caller }) func getPurchaseInquiry(inquiryId : Nat) : async PurchaseInquiry {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view purchase inquiries");
@@ -474,7 +662,7 @@ actor {
     };
   };
 
-  // Admin: View all inquiries
+  // Admin: View all inquiries (includes full artist profile for admin purposes)
   public query ({ caller }) func getAllPurchaseInquiries() : async [PurchaseInquiry] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view all purchase inquiries");
@@ -482,7 +670,7 @@ actor {
     inquiries.values().toArray();
   };
 
-  // Admin: View inquiries for specific artwork
+  // Admin: View inquiries for specific artwork (includes full artist profile for admin purposes)
   public query ({ caller }) func getInquiriesByArtwork(artworkId : Nat) : async [PurchaseInquiry] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view inquiries by artwork");
@@ -516,7 +704,8 @@ actor {
 
     let artistProfile : ArtistProfile = {
       id = 1;
-      name = "Jane Doe";
+      profileName = "Jane Doe";
+      publicSiteUsername = "janedoe";
       bio = "Contemporary sculptor exploring digital and physical forms.";
       website = "www.janedoestudios.com";
       createdAt = now;

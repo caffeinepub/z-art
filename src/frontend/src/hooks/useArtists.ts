@@ -1,19 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useInternetIdentity } from './useInternetIdentity';
-import type { ArtistProfile } from '../backend';
+import type { ArtistProfile, PublicArtistProfile } from '../backend';
 
 export function useArtists() {
   const { actor, isFetching: actorFetching } = useActor();
 
-  return useQuery<ArtistProfile[]>({
+  return useQuery<PublicArtistProfile[]>({
     queryKey: ['artists'],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getArtistProfiles();
     },
     enabled: !!actor && !actorFetching,
-    staleTime: 30000, // Cache for 30 seconds to prevent unnecessary refetches
+    staleTime: 30000,
   });
 }
 
@@ -21,7 +21,7 @@ export function useArtistById(artistId: bigint) {
   const { actor, isFetching: actorFetching } = useActor();
   const { data: artists } = useArtists();
 
-  return useQuery<ArtistProfile | null>({
+  return useQuery<PublicArtistProfile | null>({
     queryKey: ['artist', artistId.toString()],
     queryFn: async () => {
       if (!artists) return null;
@@ -42,7 +42,6 @@ export function useGetCallerArtistProfile() {
       try {
         return await actor.getArtistProfileByCaller();
       } catch (error) {
-        // User doesn't have an artist profile yet
         return null;
       }
     },
@@ -58,7 +57,8 @@ export function useGetCallerArtistProfile() {
 }
 
 interface CreateArtistProfileParams {
-  name: string;
+  profileName: string;
+  publicSiteUsername: string;
   bio: string;
   website: string;
 }
@@ -70,14 +70,52 @@ export function useCreateArtistProfile() {
   return useMutation({
     mutationFn: async (params: CreateArtistProfileParams) => {
       if (!actor) throw new Error('Actor not available');
-      await actor.createArtistProfile(params.name, params.bio, params.website);
+      await actor.createArtistProfile(
+        params.profileName,
+        params.publicSiteUsername,
+        params.bio,
+        params.website
+      );
     },
     onSuccess: () => {
-      // Invalidate both the caller's artist profile and the full artists list
       queryClient.invalidateQueries({ queryKey: ['callerArtistProfile'] });
       queryClient.invalidateQueries({ queryKey: ['artists'] });
+      queryClient.invalidateQueries({ queryKey: ['artworks'] });
       queryClient.refetchQueries({ queryKey: ['callerArtistProfile'] });
       queryClient.refetchQueries({ queryKey: ['artists'] });
+    },
+  });
+}
+
+interface UpdateArtistProfileParams {
+  profileName: string;
+  publicSiteUsername: string;
+  bio: string;
+  website: string;
+}
+
+export function useUpdateArtistProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: UpdateArtistProfileParams) => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.updateArtistProfile(
+        params.profileName,
+        params.publicSiteUsername,
+        params.bio,
+        params.website
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['callerArtistProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['artists'] });
+      queryClient.invalidateQueries({ queryKey: ['artworks'] });
+      queryClient.invalidateQueries({ queryKey: ['artwork'] });
+      queryClient.refetchQueries({ queryKey: ['callerArtistProfile'] });
+      queryClient.refetchQueries({ queryKey: ['artists'] });
+      queryClient.refetchQueries({ queryKey: ['artworks'] });
     },
   });
 }

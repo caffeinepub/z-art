@@ -30,7 +30,7 @@ export default function ArtistsPage() {
           {artists.map((artist) => (
             <Card key={Number(artist.id)} className="hover:shadow-gallery transition-shadow">
               <CardHeader>
-                <CardTitle className="font-display text-2xl">{artist.name}</CardTitle>
+                <CardTitle className="font-display text-2xl">{artist.publicSiteUsername}</CardTitle>
                 <CardDescription className="line-clamp-2">{artist.bio}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">

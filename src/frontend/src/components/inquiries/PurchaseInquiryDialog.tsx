@@ -17,10 +17,10 @@ import { usePurchaseInquiry } from '../../hooks/usePurchaseInquiry';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from '../../hooks/useAuthz';
 import { useProfileSetup } from '../auth/ProfileSetupProvider';
-import type { Artwork } from '../../backend';
+import type { PublicArtwork } from '../../backend';
 
 interface PurchaseInquiryDialogProps {
-  artwork: Artwork;
+  artwork: PublicArtwork;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -174,8 +174,8 @@ export default function PurchaseInquiryDialog({
               <Input
                 id="buyerName"
                 {...register('buyerName', { required: 'Name is required' })}
-                placeholder="John Doe"
-                disabled={isPending || profileLoading}
+                placeholder="Enter your name"
+                disabled={isPending}
               />
               {errors.buyerName && (
                 <p className="text-sm text-destructive">{errors.buyerName.message}</p>
@@ -194,8 +194,8 @@ export default function PurchaseInquiryDialog({
                     message: 'Invalid email address',
                   },
                 })}
-                placeholder="john@example.com"
-                disabled={isPending || profileLoading}
+                placeholder="your.email@example.com"
+                disabled={isPending}
               />
               {errors.buyerEmail && (
                 <p className="text-sm text-destructive">{errors.buyerEmail.message}</p>
@@ -203,42 +203,27 @@ export default function PurchaseInquiryDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="message">Message (Optional)</Label>
+              <Label htmlFor="message">Message</Label>
               <Textarea
                 id="message"
                 {...register('message')}
-                placeholder="I'm interested in purchasing this artwork..."
+                placeholder="Add any additional information or questions..."
                 rows={4}
-                disabled={isPending || profileLoading}
+                disabled={isPending}
               />
+              <p className="text-xs text-muted-foreground">Optional</p>
             </div>
 
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                className="flex-1"
-                disabled={isPending}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isPending || profileLoading} className="flex-1">
-                {isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : profileLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  'Send Inquiry'
-                )}
-              </Button>
-            </div>
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending Inquiry...
+                </>
+              ) : (
+                'Send Inquiry'
+              )}
+            </Button>
           </form>
         )}
       </DialogContent>

@@ -104,7 +104,7 @@ export default function SubmissionsTab() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{submission.artist.name}</TableCell>
+                    <TableCell>{submission.artist.publicSiteUsername}</TableCell>
                     <TableCell>{formatGBP(submission.artwork.price)}</TableCell>
                     <TableCell>{getStatusBadge(submission.status)}</TableCell>
                     <TableCell>

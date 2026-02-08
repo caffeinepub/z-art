@@ -40,7 +40,6 @@ export default function ArtworkDetailsPage() {
   const isAuthenticated = !!identity;
   const isLoggingIn = loginStatus === 'logging-in';
 
-  // Check if the current user owns this artwork
   const isOwner = identity && mySubmissions?.some(
     (submission) => submission.artwork.id === artwork?.id
   );
@@ -59,20 +58,17 @@ export default function ArtworkDetailsPage() {
   };
 
   const handleInquiryClick = () => {
-    // Check authentication first
     if (!isAuthenticated) {
       toast.error('Please log in to submit a purchase inquiry');
       return;
     }
 
-    // Check profile completion
     if (!profileLoading && userProfile === null) {
       toast.error('Please complete your profile before submitting an inquiry');
       openProfileSetup();
       return;
     }
 
-    // Open inquiry dialog
     setInquiryDialogOpen(true);
   };
 
@@ -129,7 +125,7 @@ export default function ArtworkDetailsPage() {
                 onClick={() => navigate({ to: '/artist/$artistId', params: { artistId: String(artwork.artist.id) } })}
                 className="hover:text-primary transition-colors"
               >
-                {artwork.artist.name}
+                {artwork.artist.publicSiteUsername}
               </button>
             </div>
           </div>

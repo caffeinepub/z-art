@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Artwork } from '../backend';
+import type { PublicArtwork } from '../backend';
 
 export function useArtworks() {
   const { actor, isFetching: actorFetching } = useActor();
 
-  return useQuery<Artwork[]>({
+  return useQuery<PublicArtwork[]>({
     queryKey: ['artworks'],
     queryFn: async () => {
       if (!actor) return [];
@@ -18,7 +18,7 @@ export function useArtworks() {
 export function useArtworkById(artworkId: bigint) {
   const { actor, isFetching: actorFetching } = useActor();
 
-  return useQuery<Artwork | null>({
+  return useQuery<PublicArtwork | null>({
     queryKey: ['artwork', artworkId.toString()],
     queryFn: async () => {
       if (!actor) return null;
@@ -32,4 +32,3 @@ export function useArtworkById(artworkId: bigint) {
     enabled: !!actor && !actorFetching,
   });
 }
-

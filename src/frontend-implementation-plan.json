@@ -1,95 +1,83 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Public gallery browsing with profile-gated uploads and interactions",
+  "title": "Private profile name + unique public username in artist profile creation and display (frontend)",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Make all gallery browsing routes accessible without authentication or a completed profile by removing global profile gating during normal browsing.",
+      "id": "REQ-3",
+      "summary": "Add/upgrade the artist profile creation UI to collect private profileName and public username with validation, backend error handling, and cache refresh on success.",
       "acceptanceCriteria": [
-        "A signed-out (anonymous) user can visit /gallery and see artworks without being prompted to create a profile.",
-        "A signed-out (anonymous) user can open /artwork/:artworkId and view all artwork details without being prompted to create a profile.",
-        "A signed-out (anonymous) user can visit /artists and /artist/:artistId and view artist information without being prompted to create a profile.",
-        "An authenticated user who has not created a user profile is not blocked by any profile setup modal while browsing /gallery, /artwork/:artworkId, /artists, or /artist/:artistId."
+        "The creation form includes separate inputs for profile name (private/internal) and username (public display name).",
+        "The username field has client-side validation (required; allowed character set; length constraints) and shows inline validation errors.",
+        "On username uniqueness errors returned by the backend, the UI displays the backend error message without crashing.",
+        "On successful creation, the UI shows a success confirmation and refreshes any cached artist/profile data that depends on the artist profile."
       ],
       "file_operations": [
+        {
+          "path": "frontend/src/components/artists/CreateArtistProfileForm.tsx",
+          "operation": "modify",
+          "description": "Ensure the creation form clearly separates private profileName vs publicSiteUsername (labeling + helper text), keeps client-side validation for the public username, and renders backend collision errors as user-readable inline/alert text without breaking the UI."
+        },
+        {
+          "path": "frontend/src/hooks/useArtists.ts",
+          "operation": "modify",
+          "description": "Confirm create-artist-profile mutation invalidates/refetches all relevant react-query caches used across the site (caller artist profile, artists list, and any artwork caches that embed artist display data) after successful creation."
+        },
+        {
+          "path": "frontend/src/pages/EditArtistProfilePage.tsx",
+          "operation": "modify",
+          "description": "Update the missing-artist-profile state to route users into the dedicated artist profile creation flow (instead of only instructing to submit artwork). Use the authorization component’s authentication guidance (Internet Identity + cache clearing patterns) where applicable; verify the component's usage instructions before implementing."
+        },
         {
           "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Remove the site-wide auto-opening ProfileSetupModal from the root layout so browsing routes are never blocked by profile setup; instead wire in a controlled, on-demand profile setup provider/controller component. Use the selected \"authorization\" component’s frontend patterns for detecting authentication/profile presence. Verify the component's usage instructions before implementing."
+          "description": "Wire a dedicated artist profile creation route into the router (a 'brand new profile flow' page that hosts CreateArtistProfileForm) and ensure it is reachable from existing flows (no orphan page)."
         },
         {
-          "path": "frontend/src/components/auth/ProfileSetupProvider.tsx",
+          "path": "frontend/src/pages/CreateArtistProfilePage.tsx",
           "operation": "create",
-          "description": "Add a small context/provider that owns the profile-setup dialog open state and exposes an on-demand action (e.g., openProfileSetup()) that restricted flows can call, without affecting public browsing. Use the selected \"authorization\" component’s frontend guidance for profile fetching state (avoid modal flash) and cache-clearing expectations on logout. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Change profile setup gating so the profile setup UI is invoked only when attempting restricted actions (submission/upload), not globally during browsing.",
-      "acceptanceCriteria": [
-        "The profile setup modal does not automatically open site-wide just because an authenticated user lacks a profile.",
-        "When an authenticated user without a profile navigates to /submit, the UI blocks submission and clearly indicates they must complete their profile (existing behavior can remain, but must not rely on a site-wide forced modal).",
-        "The app still supports completing the user profile via the existing profile setup UI, using English user-facing text."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/auth/ProfileSetupModal.tsx",
-          "operation": "modify",
-          "description": "Refactor the existing ProfileSetupModal so it can be opened in a controlled/on-demand way (accept open state and completion callbacks from a parent controller) rather than auto-opening globally when userProfile is null. Keep English user-facing text. Use the selected \"authorization\" component’s recommended logic for combining actor readiness + identity + query fetch state. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/SubmitArtworkPage.tsx",
-          "operation": "modify",
-          "description": "Update /submit gating to block submission only at this route: if authenticated and profile is missing, show a clear call-to-action to complete the profile and trigger the on-demand profile setup flow (via the new provider/controller) instead of relying on a global forced modal. Use the selected \"authorization\" component patterns for profile checks and for handling authenticated-without-profile state. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/MyProfilePage.tsx",
-          "operation": "modify",
-          "description": "Adjust the 'profile missing' state messaging so it no longer claims the modal will appear automatically; provide a clear action to complete profile (open the on-demand profile setup flow or otherwise direct the user to completion using existing UI). Use the selected \"authorization\" component’s profile setup expectations. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Gate artwork interactions (purchase inquiry) behind login + completed profile, prompting users appropriately before allowing submission.",
-      "acceptanceCriteria": [
-        "From an artwork detail page, a signed-out user cannot submit a purchase inquiry; the UI prompts them to log in first.",
-        "From an artwork detail page, an authenticated user without a profile cannot submit a purchase inquiry; the UI prompts them to complete their profile first.",
-        "An authenticated user with a completed profile can submit a purchase inquiry successfully (no regression)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/ArtworkDetailsPage.tsx",
-          "operation": "modify",
-          "description": "Before opening the purchase inquiry flow, add UI gating: if signed out, prompt login; if signed in but missing profile, prompt profile completion (trigger the on-demand profile setup flow). Ensure viewing artwork details remains unrestricted. Use the selected \"authorization\" component’s frontend auth/profile detection patterns. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/inquiries/PurchaseInquiryDialog.tsx",
-          "operation": "modify",
-          "description": "Add pre-submit guards so the dialog prevents inquiry submission unless the user is authenticated and has a completed profile; show clear prompts/buttons to log in and/or complete profile. Keep successful submission behavior unchanged for users with profiles. Use the selected \"authorization\" component’s guidance for handling authorization failures gracefully and for initiating login via Internet Identity. Verify the component's usage instructions before implementing."
+          "description": "Create a new page that hosts CreateArtistProfileForm, handles authenticated/unauthenticated states (prompt to log in when needed), shows success confirmation, and navigates the user onward after creation. Use the authorization component’s frontend authentication patterns; verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-4",
-      "summary": "Ensure the Artists page consistently renders the full backend-returned artist list by fixing frontend caching/filtering behavior that can drop entries.",
+      "summary": "Display only the public username on public-facing pages and surfaces, while allowing the authenticated owner to view/edit both profileName and public username.",
       "acceptanceCriteria": [
-        "/artists displays all artist profiles returned by the backend call that powers the Artists page.",
-        "Refreshing the page or navigating away/back does not cause the Artists list to drop entries unexpectedly.",
-        "If the backend returns N artists, the UI renders N artist cards (unless intentionally paginated, which is not required here)."
+        "Artists list/cards and any artwork/artist display surfaces show artist.username as the display name.",
+        "The artist public profile page shows the username (and other public fields) but not the private profileName.",
+        "The edit/owner-only artist profile view allows viewing/editing both profileName (private) and username (public)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useArtists.ts",
-          "operation": "modify",
-          "description": "Adjust the artists query to avoid incomplete/stale rendering (e.g., ensure stable query behavior across navigation, avoid any accidental client-side filtering/deduplication, and make sure mutations that create artist profiles invalidate/refetch the shared ['artists'] cache). Verify the component's usage instructions before implementing."
-        },
-        {
           "path": "frontend/src/pages/ArtistsPage.tsx",
           "operation": "modify",
-          "description": "Ensure the Artists page renders exactly the list returned by the artists query (no additional filtering) and remains stable during refetch/navigation (avoid transient states that can appear as missing entries). Verify the component's usage instructions before implementing."
+          "description": "Update artist cards to display the public username field from PublicArtistProfile (publicSiteUsername) as the display name, ensuring no private profileName is rendered in public lists."
+        },
+        {
+          "path": "frontend/src/pages/ArtistProfilePage.tsx",
+          "operation": "modify",
+          "description": "Ensure the public artist profile header and any other public-facing UI uses the public username field (publicSiteUsername) and never attempts to render private profileName for non-owner views."
+        },
+        {
+          "path": "frontend/src/components/gallery/ArtworkCard.tsx",
+          "operation": "modify",
+          "description": "Ensure artwork cards derive the artist display name from PublicArtwork.artist.publicSiteUsername (with a safe fallback) so the private profileName is never shown in the gallery grid."
+        },
+        {
+          "path": "frontend/src/pages/ArtworkDetailsPage.tsx",
+          "operation": "modify",
+          "description": "Ensure the artwork details artist attribution displays the public username field (publicSiteUsername) and not any private/internal name."
+        },
+        {
+          "path": "frontend/src/components/artists/EditArtistProfileForm.tsx",
+          "operation": "modify",
+          "description": "Align the owner-only edit form fields to the backend interface (publicSiteUsername + profileName) and ensure the owner can view/edit both. Keep backend error messages (including username collisions) visible and user-readable."
+        },
+        {
+          "path": "frontend/src/hooks/useArtists.ts",
+          "operation": "modify",
+          "description": "Align hook return-field usage throughout to the backend interface naming (PublicArtistProfile.publicSiteUsername; ArtistProfile.publicSiteUsername + profileName) and ensure any mapping is consistent so public pages can never accidentally consume private profileName."
         }
       ]
     }

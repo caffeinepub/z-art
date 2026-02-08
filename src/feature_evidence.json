@@ -2,52 +2,14 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-allow-all-gallery-browsing-flows-to-work-without-requiring-authentication-or-a-completed-user-profile-including-viewing-the-gallery-page-viewing-an-artwork-details-page-viewing-the-artists-list-and-viewing-an-individual-artist-profile-page",
-      "featureTitle": "Allow all gallery browsing flows to work without requiring authentication or a completed user profile, including: viewing the Gallery page, viewing an Artwork details page, viewing the Artists list, and viewing an individual Artist profile page.",
+      "featureId": "feature-implement-a-brand-new-artist-profile-creation-flow-in-the-frontend-that-collects-both-fields-a-private-profile-name-and-a-public-site-username-with-appropriate-form-validation-and-error-handling",
+      "featureTitle": "Implement a brand-new artist profile creation flow in the frontend that collects both fields: a private profile name and a public site username, with appropriate form validation and error handling.",
       "files": [
         "frontend/src/App.tsx",
-        "frontend/src/components/auth/ProfileSetupProvider.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-change-the-profile-setup-gating-so-that-the-profile-setup-modal-is-not-shown-globally-during-normal-browsing-instead-require-a-completed-user-profile-only-at-the-point-of-restricted-actions-uploading-content-and-interactions",
-      "featureTitle": "Change the profile setup gating so that the profile setup modal is not shown globally during normal browsing; instead, require a completed user profile only at the point of restricted actions (uploading content and interactions).",
-      "files": [
-        "frontend/src/components/auth/ProfileSetupModal.tsx",
-        "frontend/src/pages/MyProfilePage.tsx",
-        "frontend/src/pages/SubmitArtworkPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-require-a-completed-user-profile-for-interaction-flows-in-the-artwork-experience-at-minimum-submitting-a-purchase-inquiry-if-a-user-is-not-authenticated-or-has-no-profile-the-ui-must-prevent-the-interaction-and-prompt-them-to-log-in-and-or-complete-their-profile",
-      "featureTitle": "Require a completed user profile for interaction flows in the artwork experience (at minimum: submitting a purchase inquiry). If a user is not authenticated or has no profile, the UI must prevent the interaction and prompt them to log in and/or complete their profile.",
-      "files": [
-        "frontend/src/components/inquiries/PurchaseInquiryDialog.tsx",
-        "frontend/src/pages/ArtworkDetailsPage.tsx"
+        "frontend/src/components/artists/CreateArtistProfileForm.tsx",
+        "frontend/src/hooks/useArtists.ts",
+        "frontend/src/pages/CreateArtistProfilePage.tsx",
+        "frontend/src/pages/EditArtistProfilePage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -63,11 +25,15 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-fix-the-issue-where-the-artists-page-does-not-list-all-expected-artists-by-ensuring-the-frontend-always-renders-the-full-set-of-artists-returned-by-the-backend-and-by-resolving-any-filtering-caching-logic-that-could-cause-the-list-to-appear-incomplete",
-      "featureTitle": "Fix the issue where the Artists page does not list all expected artists by ensuring the frontend always renders the full set of artists returned by the backend and by resolving any filtering/caching logic that could cause the list to appear incomplete.",
+      "featureId": "feature-ensure-that-public-facing-pages-components-display-the-public-site-username-and-never-display-the-private-profile-name-for-any-artist-other-than-the-authenticated-owner-view",
+      "featureTitle": "Ensure that public-facing pages/components display the public site username and never display the private profile name for any artist other than the authenticated owner view.",
       "files": [
+        "frontend/src/components/artists/EditArtistProfileForm.tsx",
+        "frontend/src/components/gallery/ArtworkCard.tsx",
         "frontend/src/hooks/useArtists.ts",
-        "frontend/src/pages/ArtistsPage.tsx"
+        "frontend/src/pages/ArtistProfilePage.tsx",
+        "frontend/src/pages/ArtistsPage.tsx",
+        "frontend/src/pages/ArtworkDetailsPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",

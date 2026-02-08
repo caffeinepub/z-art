@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,13 +9,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, Upload, X } from 'lucide-react';
 import { useEditArtwork } from '../../hooks/useEditArtwork';
 import { fileToDataUrl } from '../../utils/fileToDataUrl';
-import { parseGBPToMinorUnits, minorUnitsToDecimal } from '../../utils/gbpMoney';
+import { minorUnitsToDecimal, parseGBPToMinorUnits } from '../../utils/gbpMoney';
 import ArtworkImage from '../images/ArtworkImage';
 import ArtworkLightbox from '../images/ArtworkLightbox';
-import type { Artwork } from '../../backend';
+import type { PublicArtwork } from '../../backend';
 
 interface EditArtworkFormProps {
-  artwork: Artwork;
+  artwork: PublicArtwork;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -30,13 +30,15 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
   const { mutate: editArtwork, isPending } = useEditArtwork();
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>(artwork.imageUrl);
+  const [imagePreview, setImagePreview] = useState<string | null>(artwork.imageUrl);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<FormData>({
     defaultValues: {
       title: artwork.title,
@@ -57,13 +59,18 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load image');
       setImageFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
-  const clearNewImage = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const clearImage = () => {
     setImageFile(null);
     setImagePreview(artwork.imageUrl);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const onSubmit = async (data: FormData) => {
@@ -77,7 +84,7 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
           artworkId: artwork.id,
           title: data.title,
           description: data.description,
-          imageUrl: imagePreview,
+          imageUrl: imagePreview || artwork.imageUrl,
           price,
         },
         {
@@ -85,12 +92,7 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
             onSuccess();
           },
           onError: (err) => {
-            const errorMessage = err instanceof Error ? err.message : 'Failed to update artwork';
-            if (errorMessage.includes('Unauthorized') || errorMessage.includes('original artist')) {
-              setError('You are not authorized to edit this artwork. Only the original artist can make changes.');
-            } else {
-              setError(errorMessage);
-            }
+            setError(err instanceof Error ? err.message : 'Failed to update artwork');
           },
         }
       );
@@ -99,13 +101,22 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
     }
   };
 
+  const handlePreviewClick = (e: React.MouseEvent) => {
+    setLightboxOpen(true);
+  };
+
+  const handleClearClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    clearImage();
+  };
+
   return (
     <>
       <Card>
         <CardHeader>
           <CardTitle>Edit Artwork</CardTitle>
           <CardDescription>
-            Update the information about your artwork. You can optionally replace the image.
+            Update the details of your artwork. All fields are required.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -145,83 +156,104 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="image">Artwork Image</Label>
-              <div className="relative">
-                <ArtworkImage
-                  src={imagePreview}
-                  alt="Preview"
-                  className="w-full h-64 object-cover rounded-lg border"
-                  aspectClassName="h-64"
-                  onClick={() => setLightboxOpen(true)}
-                />
-                {imageFile && (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2"
-                    onClick={clearNewImage}
-                    disabled={isPending}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-              <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-primary transition-colors">
-                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <Label
-                  htmlFor="image"
-                  className="cursor-pointer text-sm text-muted-foreground hover:text-primary"
-                >
-                  Click to upload a new image (optional)
-                  <br />
-                  <span className="text-xs">PNG, JPG, GIF up to 5MB</span>
-                </Label>
-                <Input
-                  id="image"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                  disabled={isPending}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Leave unchanged to keep the current image, or upload a new one to replace it
-              </p>
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="price">Price (GBP) *</Label>
               <Input
                 id="price"
-                type="number"
-                step="0.01"
-                min="0"
-                {...register('price', {
-                  required: 'Price is required',
-                  min: { value: 0, message: 'Price must be positive' },
-                })}
-                placeholder="0.00"
+                {...register('price', { required: 'Price is required' })}
+                placeholder="e.g., 150.00"
                 disabled={isPending}
               />
+              <p className="text-sm text-muted-foreground">
+                Enter the price in pounds (e.g., 150.00 for £150)
+              </p>
               {errors.price && (
                 <p className="text-sm text-destructive">{errors.price.message}</p>
               )}
             </div>
 
-            <div className="flex gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="image">Artwork Image</Label>
+              {imagePreview ? (
+                <div className="space-y-3">
+                  <div 
+                    className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden cursor-pointer"
+                    onClick={handlePreviewClick}
+                  >
+                    <ArtworkImage
+                      src={imagePreview}
+                      alt="Artwork preview"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isPending}
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Change Image
+                    </Button>
+                    {imageFile && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleClearClick}
+                        disabled={isPending}
+                      >
+                        <X className="mr-2 h-4 w-4" />
+                        Revert to Original
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+                  <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isPending}
+                  >
+                    Select Image
+                  </Button>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    PNG, JPG up to 5MB
+                  </p>
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+                disabled={isPending}
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
               <Button type="submit" className="flex-1" disabled={isPending}>
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
+                    Saving Changes...
                   </>
                 ) : (
-                  'Update Artwork'
+                  'Save Changes'
                 )}
               </Button>
-              <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isPending}
+                className="flex-1"
+              >
                 Cancel
               </Button>
             </div>
@@ -229,12 +261,14 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
         </CardContent>
       </Card>
 
-      <ArtworkLightbox
-        src={imagePreview}
-        alt="Preview"
-        open={lightboxOpen}
-        onOpenChange={setLightboxOpen}
-      />
+      {imagePreview && (
+        <ArtworkLightbox
+          src={imagePreview}
+          alt="Artwork preview"
+          open={lightboxOpen}
+          onOpenChange={setLightboxOpen}
+        />
+      )}
     </>
   );
 }

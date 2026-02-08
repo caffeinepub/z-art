@@ -13,9 +13,10 @@ import type { Principal } from '@icp-sdk/core/principal';
 export interface ArtistProfile {
   'id' : bigint,
   'bio' : string,
-  'name' : string,
   'createdAt' : bigint,
+  'publicSiteUsername' : string,
   'website' : string,
+  'profileName' : string,
 }
 export interface Artwork {
   'id' : bigint,
@@ -34,6 +35,22 @@ export interface ArtworkSubmission {
   'artwork' : Artwork,
   'artistPrincipal' : Principal,
   'artist' : ArtistProfile,
+}
+export interface PublicArtistProfile {
+  'id' : bigint,
+  'bio' : string,
+  'createdAt' : bigint,
+  'publicSiteUsername' : string,
+  'website' : string,
+}
+export interface PublicArtwork {
+  'id' : bigint,
+  'title' : string,
+  'createdAt' : bigint,
+  'description' : string,
+  'imageUrl' : string,
+  'artist' : PublicArtistProfile,
+  'price' : bigint,
 }
 export interface PurchaseInquiry {
   'id' : bigint,
@@ -61,7 +78,10 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'approveSubmission' : ActorMethod<[bigint], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'createArtistProfile' : ActorMethod<[string, string, string], undefined>,
+  'createArtistProfile' : ActorMethod<
+    [string, string, string, string],
+    undefined
+  >,
   'createPurchaseInquiry' : ActorMethod<
     [bigint, string, string, string],
     undefined
@@ -74,9 +94,9 @@ export interface _SERVICE {
   'getAllPurchaseInquiries' : ActorMethod<[], Array<PurchaseInquiry>>,
   'getAllSubmissions' : ActorMethod<[], Array<ArtworkSubmission>>,
   'getArtistProfileByCaller' : ActorMethod<[], ArtistProfile>,
-  'getArtistProfiles' : ActorMethod<[], Array<ArtistProfile>>,
-  'getArtworkById' : ActorMethod<[bigint], Artwork>,
-  'getArtworks' : ActorMethod<[], Array<Artwork>>,
+  'getArtistProfiles' : ActorMethod<[], Array<PublicArtistProfile>>,
+  'getArtworkById' : ActorMethod<[bigint], PublicArtwork>,
+  'getArtworks' : ActorMethod<[], Array<PublicArtwork>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getInquiriesByArtwork' : ActorMethod<[bigint], Array<PurchaseInquiry>>,
@@ -90,6 +110,10 @@ export interface _SERVICE {
   'submitArtwork' : ActorMethod<
     [string, string, string, bigint],
     SubmissionResult
+  >,
+  'updateArtistProfile' : ActorMethod<
+    [string, string, string, string],
+    undefined
   >,
 }
 export declare const idlService: IDL.ServiceClass;

@@ -1,42 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "Project now includes a brand-new profile creation flow supporting a private profile name and a unique, public site username for display.",
   "architectural_notes": [
-    "Public/anonymous users can browse all gallery content; authentication/profile is required only for write actions (uploading and interactions)."
+    "Site username must be unique across users/profiles and is public; profile name is private (not publicly displayed)."
   ],
-  "known_issues": [
-    "Not all artists are listed (artists list appears incomplete)."
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-allow-all-gallery-browsing-flows-to-work-without-requiring-authentication-or-a-completed-user-profile-including-viewing-the-gallery-page-viewing-an-artwork-details-page-viewing-the-artists-list-and-viewing-an-individual-artist-profile-page",
-      "title": "Allow all gallery browsing flows to work without requiring authentication or a completed user profile, including: viewing the Gallery page, viewing an Artwork details page, viewing the Artists list, and viewing an individual Artist profile page.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-change-the-profile-setup-gating-so-that-the-profile-setup-modal-is-not-shown-globally-during-normal-browsing-instead-require-a-completed-user-profile-only-at-the-point-of-restricted-actions-uploading-content-and-interactions",
-      "title": "Change the profile setup gating so that the profile setup modal is not shown globally during normal browsing; instead, require a completed user profile only at the point of restricted actions (uploading content and interactions).",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-require-a-completed-user-profile-for-interaction-flows-in-the-artwork-experience-at-minimum-submitting-a-purchase-inquiry-if-a-user-is-not-authenticated-or-has-no-profile-the-ui-must-prevent-the-interaction-and-prompt-them-to-log-in-and-or-complete-their-profile",
-      "title": "Require a completed user profile for interaction flows in the artwork experience (at minimum: submitting a purchase inquiry). If a user is not authenticated or has no profile, the UI must prevent the interaction and prompt them to log in and/or complete their profile.",
+      "id": "feature-implement-a-brand-new-artist-profile-creation-flow-in-the-frontend-that-collects-both-fields-a-private-profile-name-and-a-public-site-username-with-appropriate-form-validation-and-error-handling",
+      "title": "Implement a brand-new artist profile creation flow in the frontend that collects both fields: a private profile name and a public site username, with appropriate form validation and error handling.",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
     },
     {
-      "id": "feature-fix-the-issue-where-the-artists-page-does-not-list-all-expected-artists-by-ensuring-the-frontend-always-renders-the-full-set-of-artists-returned-by-the-backend-and-by-resolving-any-filtering-caching-logic-that-could-cause-the-list-to-appear-incomplete",
-      "title": "Fix the issue where the Artists page does not list all expected artists by ensuring the frontend always renders the full set of artists returned by the backend and by resolving any filtering/caching logic that could cause the list to appear incomplete.",
+      "id": "feature-ensure-that-public-facing-pages-components-display-the-public-site-username-and-never-display-the-private-profile-name-for-any-artist-other-than-the-authenticated-owner-view",
+      "title": "Ensure that public-facing pages/components display the public site username and never display the private profile name for any artist other than the authenticated owner view.",
       "reqIds": [
         "REQ-4"
       ],
@@ -46,12 +28,28 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Make all gallery content publicly viewable without a profile; require a profile only for uploading and interactions (like/ মন্তব্য/comment, etc.)",
+      "summary": "Add brand-new profile creation flow with private profile name and unique public site username for display",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Update the backend artist-profile data model and APIs to support both (a) a private internal profile name and (b) a public site username used for display across the site.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Enforce uniqueness of the public site username when creating or updating an artist profile, and return a clear error when the username is already taken.",
+      "reqIds": [
+        "REQ-2"
+      ],
       "status": "pending"
     }
   ],
-  "projectName": "Make gallery public; require profile only for uploads and interactions",
+  "projectName": "Add private profile name plus unique public site username in new profile creation flow",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

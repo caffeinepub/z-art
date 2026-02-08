@@ -1,85 +1,93 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T07:04:01.643Z",
+  "generatedAt": "2026-02-08T13:05:25.154Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 4,
-    "implemented": 4,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Allow all gallery browsing flows to work without requiring authentication or a completed user profile, including: viewing the Gallery page, viewing an Artwork details page, viewing the Artists list, and viewing an individual Artist profile page.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/components/auth/ProfileSetupProvider.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/components/auth/ProfileSetupProvider.tsx"
-        ]
+        "summary": "Update the backend artist-profile data model and APIs to support both (a) a private internal profile name and (b) a public site username used for display across the site.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Change the profile setup gating so that the profile setup modal is not shown globally during normal browsing; instead, require a completed user profile only at the point of restricted actions (uploading content and interactions).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/auth/ProfileSetupModal.tsx",
-          "frontend/src/pages/SubmitArtworkPage.tsx",
-          "frontend/src/pages/MyProfilePage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/auth/ProfileSetupModal.tsx",
-          "frontend/src/pages/SubmitArtworkPage.tsx",
-          "frontend/src/pages/MyProfilePage.tsx"
-        ]
+        "summary": "Enforce uniqueness of the public site username when creating or updating an artist profile, and return a clear error when the username is already taken.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-3",
-        "summary": "Require a completed user profile for interaction flows in the artwork experience (at minimum: submitting a purchase inquiry). If a user is not authenticated or has no profile, the UI must prevent the interaction and prompt them to log in and/or complete their profile.",
+        "summary": "Implement a brand-new artist profile creation flow in the frontend that collects both fields: a private profile name and a public site username, with appropriate form validation and error handling.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/ArtworkDetailsPage.tsx",
-          "frontend/src/components/inquiries/PurchaseInquiryDialog.tsx"
+          "frontend/src/components/artists/CreateArtistProfileForm.tsx",
+          "frontend/src/hooks/useArtists.ts",
+          "frontend/src/pages/EditArtistProfilePage.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/pages/CreateArtistProfilePage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/ArtworkDetailsPage.tsx",
-          "frontend/src/components/inquiries/PurchaseInquiryDialog.tsx"
+          "frontend/src/components/artists/CreateArtistProfileForm.tsx",
+          "frontend/src/hooks/useArtists.ts",
+          "frontend/src/pages/EditArtistProfilePage.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/pages/CreateArtistProfilePage.tsx"
         ]
       },
       {
         "id": "REQ-4",
-        "summary": "Fix the issue where the Artists page does not list all expected artists by ensuring the frontend always renders the full set of artists returned by the backend and by resolving any filtering/caching logic that could cause the list to appear incomplete.",
+        "summary": "Ensure that public-facing pages/components display the public site username and never display the private profile name for any artist other than the authenticated owner view.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useArtists.ts",
-          "frontend/src/pages/ArtistsPage.tsx"
+          "frontend/src/pages/ArtistsPage.tsx",
+          "frontend/src/pages/ArtistProfilePage.tsx",
+          "frontend/src/components/gallery/ArtworkCard.tsx",
+          "frontend/src/pages/ArtworkDetailsPage.tsx",
+          "frontend/src/components/artists/EditArtistProfileForm.tsx",
+          "frontend/src/hooks/useArtists.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useArtists.ts",
-          "frontend/src/pages/ArtistsPage.tsx"
+          "frontend/src/pages/ArtistsPage.tsx",
+          "frontend/src/pages/ArtistProfilePage.tsx",
+          "frontend/src/components/gallery/ArtworkCard.tsx",
+          "frontend/src/pages/ArtworkDetailsPage.tsx",
+          "frontend/src/components/artists/EditArtistProfileForm.tsx",
+          "frontend/src/hooks/useArtists.ts"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/App.tsx",
-    "frontend/src/components/auth/ProfileSetupModal.tsx",
-    "frontend/src/components/auth/ProfileSetupProvider.tsx",
-    "frontend/src/components/inquiries/PurchaseInquiryDialog.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/admin/SubmissionsTab.tsx",
+    "frontend/src/components/artists/CreateArtistProfileForm.tsx",
+    "frontend/src/components/artists/EditArtistProfileForm.tsx",
+    "frontend/src/components/gallery/ArtworkCard.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useArtists.ts",
+    "frontend/src/pages/ArtistProfilePage.tsx",
     "frontend/src/pages/ArtistsPage.tsx",
     "frontend/src/pages/ArtworkDetailsPage.tsx",
-    "frontend/src/pages/MyProfilePage.tsx",
-    "frontend/src/pages/SubmitArtworkPage.tsx",
+    "frontend/src/pages/CreateArtistProfilePage.tsx",
+    "frontend/src/pages/EditArtistProfilePage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
