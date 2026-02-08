@@ -1,19 +1,21 @@
 import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import SoldWatermarkOverlay from '../artworks/SoldWatermarkOverlay';
 
 interface ArtworkLightboxProps {
   src: string;
   alt: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  sold?: boolean;
 }
 
 /**
- * A full-screen lightbox component for viewing artwork images.
+ * A full-screen lightbox component for viewing artwork images with optional SOLD watermark.
  * Uses Dialog primitive with backdrop-click and Escape-to-close behavior.
  */
-export default function ArtworkLightbox({ src, alt, open, onOpenChange }: ArtworkLightboxProps) {
+export default function ArtworkLightbox({ src, alt, open, onOpenChange, sold = false }: ArtworkLightboxProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-black/95">
@@ -27,12 +29,13 @@ export default function ArtworkLightbox({ src, alt, open, onOpenChange }: Artwor
             <span className="sr-only">Close</span>
           </Button>
         </DialogClose>
-        <div className="flex items-center justify-center w-full h-full p-4">
+        <div className="flex items-center justify-center w-full h-full p-4 relative">
           <img
             src={src}
             alt={alt}
             className="max-w-full max-h-[90vh] object-contain"
           />
+          {sold && <SoldWatermarkOverlay size="lg" />}
         </div>
       </DialogContent>
     </Dialog>

@@ -28,7 +28,7 @@ export default function SiteHeader() {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <img
-              src="/assets/generated/zart-logo.dim_512x192.png"
+              src="/assets/generated/zart-logo-arrow-v1.dim_512x192.png"
               alt="Z'art"
               className="h-10 w-auto"
             />

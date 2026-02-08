@@ -10,7 +10,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { formatGBP } from '../../utils/gbpMoney';
-import ArtworkImage from '../images/ArtworkImage';
+import SoldArtworkImage from '../artworks/SoldArtworkImage';
 
 export default function InquiriesTab() {
   const { data: inquiries, isLoading } = useGetAllPurchaseInquiries();
@@ -58,11 +58,13 @@ export default function InquiriesTab() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 flex-shrink-0">
-                        <ArtworkImage
+                        <SoldArtworkImage
                           src={inquiry.artwork.imageUrl}
                           alt={inquiry.artwork.title}
+                          sold={inquiry.artwork.sold}
                           className="w-12 h-12 object-cover rounded"
                           aspectClassName="w-12 h-12"
+                          watermarkSize="sm"
                         />
                       </div>
                       <div>

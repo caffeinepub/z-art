@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,7 +38,6 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
     register,
     handleSubmit,
     formState: { errors },
-    reset,
   } = useForm<FormData>({
     defaultValues: {
       title: artwork.title,
@@ -92,6 +91,7 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
             onSuccess();
           },
           onError: (err) => {
+            // Display backend trap messages in English (e.g., "Unauthorized: Only the original artist can edit this artwork")
             setError(err instanceof Error ? err.message : 'Failed to update artwork');
           },
         }
@@ -101,7 +101,7 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
     }
   };
 
-  const handlePreviewClick = (e: React.MouseEvent) => {
+  const handlePreviewClick = () => {
     setLightboxOpen(true);
   };
 
@@ -115,9 +115,7 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
       <Card>
         <CardHeader>
           <CardTitle>Edit Artwork</CardTitle>
-          <CardDescription>
-            Update the details of your artwork. All fields are required.
-          </CardDescription>
+          <CardDescription>Update the details of your artwork submission</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -134,7 +132,6 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
                 id="title"
                 {...register('title', { required: 'Title is required' })}
                 placeholder="Enter artwork title"
-                disabled={isPending}
               />
               {errors.title && (
                 <p className="text-sm text-destructive">{errors.title.message}</p>
@@ -148,7 +145,6 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
                 {...register('description', { required: 'Description is required' })}
                 placeholder="Describe your artwork"
                 rows={4}
-                disabled={isPending}
               />
               {errors.description && (
                 <p className="text-sm text-destructive">{errors.description.message}</p>
@@ -159,94 +155,80 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
               <Label htmlFor="price">Price (GBP) *</Label>
               <Input
                 id="price"
-                {...register('price', { required: 'Price is required' })}
-                placeholder="e.g., 150.00"
-                disabled={isPending}
+                {...register('price', {
+                  required: 'Price is required',
+                  pattern: {
+                    value: /^\d+(\.\d{1,2})?$/,
+                    message: 'Please enter a valid price (e.g., 100 or 100.50)',
+                  },
+                })}
+                placeholder="0.00"
+                type="text"
               />
-              <p className="text-sm text-muted-foreground">
-                Enter the price in pounds (e.g., 150.00 for £150)
-              </p>
               {errors.price && (
                 <p className="text-sm text-destructive">{errors.price.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="image">Artwork Image</Label>
-              {imagePreview ? (
-                <div className="space-y-3">
-                  <div 
-                    className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden cursor-pointer"
+              <Label>Artwork Image</Label>
+              {imagePreview && (
+                <div className="relative w-full max-w-md mx-auto">
+                  <div
+                    className="aspect-square overflow-hidden rounded-lg border bg-muted cursor-pointer hover:opacity-90 transition-opacity"
                     onClick={handlePreviewClick}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handlePreviewClick();
+                      }
+                    }}
                   >
                     <ArtworkImage
                       src={imagePreview}
                       alt="Artwork preview"
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-cover"
                     />
                   </div>
-                  <div className="flex gap-2">
+                  {imageFile && (
                     <Button
                       type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isPending}
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2"
+                      onClick={handleClearClick}
                     >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Change Image
+                      <X className="h-4 w-4" />
                     </Button>
-                    {imageFile && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleClearClick}
-                        disabled={isPending}
-                      >
-                        <X className="mr-2 h-4 w-4" />
-                        Revert to Original
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-                  <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isPending}
-                  >
-                    Select Image
-                  </Button>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    PNG, JPG up to 5MB
-                  </p>
+                  )}
                 </div>
               )}
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {imageFile ? 'Replace Image' : 'Change Image'}
+                </Button>
+              </div>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
                 className="hidden"
-                disabled={isPending}
               />
+              <p className="text-sm text-muted-foreground">
+                Upload a new image to replace the current one (max 5MB)
+              </p>
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button type="submit" className="flex-1" disabled={isPending}>
-                {isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving Changes...
-                  </>
-                ) : (
-                  'Save Changes'
-                )}
-              </Button>
               <Button
                 type="button"
                 variant="outline"
@@ -256,19 +238,27 @@ export default function EditArtworkForm({ artwork, onSuccess, onCancel }: EditAr
               >
                 Cancel
               </Button>
+              <Button type="submit" disabled={isPending} className="flex-1">
+                {isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
             </div>
           </form>
         </CardContent>
       </Card>
 
-      {imagePreview && (
-        <ArtworkLightbox
-          src={imagePreview}
-          alt="Artwork preview"
-          open={lightboxOpen}
-          onOpenChange={setLightboxOpen}
-        />
-      )}
+      <ArtworkLightbox
+        src={imagePreview || ''}
+        alt="Artwork preview"
+        open={lightboxOpen}
+        onOpenChange={setLightboxOpen}
+      />
     </>
   );
 }

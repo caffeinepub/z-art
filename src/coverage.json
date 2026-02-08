@@ -1,68 +1,28 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T13:05:25.154Z",
+  "generatedAt": "2026-02-08T16:19:03.439Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 2,
+    "total": 2,
+    "implemented": 0,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the backend artist-profile data model and APIs to support both (a) a private internal profile name and (b) a public site username used for display across the site.",
+        "summary": "Add a canister-level admin authorization mechanism that allows the user to become an admin with full review permissions (approve/reject artwork submissions) without adding any new admin-management UI.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Enforce uniqueness of the public site username when creating or updating an artist profile, and return a clear error when the username is already taken.",
+        "summary": "Ensure admin authorization state persists across canister upgrades so that admin access is not lost on redeploy.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Implement a brand-new artist profile creation flow in the frontend that collects both fields: a private profile name and a public site username, with appropriate form validation and error handling.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/artists/CreateArtistProfileForm.tsx",
-          "frontend/src/hooks/useArtists.ts",
-          "frontend/src/pages/EditArtistProfilePage.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/CreateArtistProfilePage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/artists/CreateArtistProfileForm.tsx",
-          "frontend/src/hooks/useArtists.ts",
-          "frontend/src/pages/EditArtistProfilePage.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/CreateArtistProfilePage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Ensure that public-facing pages/components display the public site username and never display the private profile name for any artist other than the authenticated owner view.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/ArtistsPage.tsx",
-          "frontend/src/pages/ArtistProfilePage.tsx",
-          "frontend/src/components/gallery/ArtworkCard.tsx",
-          "frontend/src/pages/ArtworkDetailsPage.tsx",
-          "frontend/src/components/artists/EditArtistProfileForm.tsx",
-          "frontend/src/hooks/useArtists.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/ArtistsPage.tsx",
-          "frontend/src/pages/ArtistProfilePage.tsx",
-          "frontend/src/components/gallery/ArtworkCard.tsx",
-          "frontend/src/pages/ArtworkDetailsPage.tsx",
-          "frontend/src/components/artists/EditArtistProfileForm.tsx",
-          "frontend/src/hooks/useArtists.ts"
-        ]
       }
     ]
   },
@@ -71,23 +31,11 @@
     "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
-    "frontend/src/components/admin/SubmissionsTab.tsx",
-    "frontend/src/components/artists/CreateArtistProfileForm.tsx",
-    "frontend/src/components/artists/EditArtistProfileForm.tsx",
-    "frontend/src/components/gallery/ArtworkCard.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useArtists.ts",
-    "frontend/src/pages/ArtistProfilePage.tsx",
-    "frontend/src/pages/ArtistsPage.tsx",
-    "frontend/src/pages/ArtworkDetailsPage.tsx",
-    "frontend/src/pages/CreateArtistProfilePage.tsx",
-    "frontend/src/pages/EditArtistProfilePage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

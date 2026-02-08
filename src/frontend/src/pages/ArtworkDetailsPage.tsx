@@ -3,10 +3,13 @@ import { useParams, useNavigate } from '@tanstack/react-router';
 import { useArtworkById } from '../hooks/useArtworks';
 import { useMySubmissions } from '../hooks/useMySubmissions';
 import { useDeleteArtwork } from '../hooks/useDeleteArtwork';
+import { useToggleArtworkSoldStatus } from '../hooks/useToggleArtworkSoldStatus';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from '../hooks/useAuthz';
 import { useProfileSetup } from '../components/auth/ProfileSetupProvider';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +22,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ArrowLeft, Loader2, User, Edit, Trash2 } from 'lucide-react';
 import PurchaseInquiryDialog from '../components/inquiries/PurchaseInquiryDialog';
-import ArtworkImage from '../components/images/ArtworkImage';
+import SoldArtworkImage from '../components/artworks/SoldArtworkImage';
 import ArtworkLightbox from '../components/images/ArtworkLightbox';
 import { formatGBP } from '../utils/gbpMoney';
 import { toast } from 'sonner';
@@ -29,10 +32,11 @@ export default function ArtworkDetailsPage() {
   const navigate = useNavigate();
   const { identity, login, loginStatus } = useInternetIdentity();
   const { data: artwork, isLoading } = useArtworkById(BigInt(artworkId));
-  const { data: mySubmissions } = useMySubmissions();
+  const { data: mySubmissions, isLoading: submissionsLoading } = useMySubmissions();
   const { data: userProfile, isLoading: profileLoading } = useGetCallerUserProfile();
   const { openProfileSetup } = useProfileSetup();
   const deleteArtwork = useDeleteArtwork();
+  const toggleSoldStatus = useToggleArtworkSoldStatus();
   const [inquiryDialogOpen, setInquiryDialogOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -40,7 +44,8 @@ export default function ArtworkDetailsPage() {
   const isAuthenticated = !!identity;
   const isLoggingIn = loginStatus === 'logging-in';
 
-  const isOwner = identity && mySubmissions?.some(
+  // Harden owner detection: only show controls when we have confirmed ownership
+  const isOwner = isAuthenticated && !submissionsLoading && mySubmissions?.some(
     (submission) => submission.artwork.id === artwork?.id
   );
 
@@ -52,8 +57,23 @@ export default function ArtworkDetailsPage() {
       toast.success('Artwork deleted successfully');
       navigate({ to: '/gallery' });
     } catch (error: any) {
-      toast.error(error.message || 'Failed to delete artwork');
+      // Surface backend trap messages (e.g., "Unauthorized: Only the original artist can delete this artwork")
+      const errorMessage = error.message || 'Failed to delete artwork';
+      toast.error(errorMessage);
       setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleToggleSold = async () => {
+    if (!artwork) return;
+
+    try {
+      await toggleSoldStatus.mutateAsync(artwork.id);
+      toast.success(artwork.sold ? 'Artwork marked as available' : 'Artwork marked as sold');
+    } catch (error: any) {
+      // Surface backend trap messages (e.g., "Unauthorized: Only the original artist can change the sold status")
+      const errorMessage = error.message || 'Failed to update sold status';
+      toast.error(errorMessage);
     }
   };
 
@@ -107,12 +127,14 @@ export default function ArtworkDetailsPage() {
 
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
         <div className="aspect-square overflow-hidden rounded-lg border bg-muted">
-          <ArtworkImage
+          <SoldArtworkImage
             src={artwork.imageUrl}
             alt={artwork.title}
+            sold={artwork.sold}
             className="w-full h-full object-cover"
             aspectClassName="aspect-square"
             onClick={() => setLightboxOpen(true)}
+            watermarkSize="lg"
           />
         </div>
 
@@ -142,6 +164,27 @@ export default function ArtworkDetailsPage() {
               <span className="text-sm text-muted-foreground">GBP</span>
             </div>
           </div>
+
+          {isOwner && (
+            <div className="border-t pt-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="sold-toggle" className="text-base font-semibold">
+                    Mark as Sold
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Toggle to indicate this artwork has been sold
+                  </p>
+                </div>
+                <Switch
+                  id="sold-toggle"
+                  checked={artwork.sold}
+                  onCheckedChange={handleToggleSold}
+                  disabled={toggleSoldStatus.isPending}
+                />
+              </div>
+            </div>
+          )}
 
           <div className="flex gap-3 mt-auto pt-6">
             {isOwner ? (
@@ -204,6 +247,7 @@ export default function ArtworkDetailsPage() {
             alt={artwork.title}
             open={lightboxOpen}
             onOpenChange={setLightboxOpen}
+            sold={artwork.sold}
           />
         </>
       )}

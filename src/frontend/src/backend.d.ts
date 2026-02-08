@@ -18,6 +18,7 @@ export interface PublicArtwork {
     id: bigint;
     title: string;
     createdAt: bigint;
+    sold: boolean;
     description: string;
     imageUrl: string;
     artist: PublicArtistProfile;
@@ -27,6 +28,7 @@ export interface Artwork {
     id: bigint;
     title: string;
     createdAt: bigint;
+    sold: boolean;
     description: string;
     imageUrl: string;
     artist: ArtistProfile;
@@ -101,5 +103,6 @@ export interface backendInterface {
     replaceDataset(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     submitArtwork(title: string, description: string, imageUrl: string, price: bigint): Promise<SubmissionResult>;
+    toggleArtworkSoldStatus(artworkId: bigint): Promise<void>;
     updateArtistProfile(newProfileName: string, newPublicSiteUsername: string, newBio: string, newWebsite: string): Promise<void>;
 }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatGBP } from '../../utils/gbpMoney';
-import ArtworkImage from '../images/ArtworkImage';
+import SoldArtworkImage from '../artworks/SoldArtworkImage';
 import ArtworkLightbox from '../images/ArtworkLightbox';
 import type { PublicArtwork } from '../../backend';
 
@@ -32,11 +32,13 @@ export default function ArtworkCard({ artwork }: ArtworkCardProps) {
         onClick={handleCardClick}
       >
         <div className="aspect-square overflow-hidden bg-muted" onClick={handleImageClick}>
-          <ArtworkImage
+          <SoldArtworkImage
             src={artwork.imageUrl}
             alt={artwork.title}
+            sold={artwork.sold}
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             aspectClassName="aspect-square"
+            watermarkSize="md"
           />
         </div>
         <CardContent className="p-4">
@@ -53,6 +55,7 @@ export default function ArtworkCard({ artwork }: ArtworkCardProps) {
         alt={artwork.title}
         open={lightboxOpen}
         onOpenChange={setLightboxOpen}
+        sold={artwork.sold}
       />
     </>
   );

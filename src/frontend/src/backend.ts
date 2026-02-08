@@ -100,6 +100,7 @@ export interface PublicArtwork {
     id: bigint;
     title: string;
     createdAt: bigint;
+    sold: boolean;
     description: string;
     imageUrl: string;
     artist: PublicArtistProfile;
@@ -109,6 +110,7 @@ export interface Artwork {
     id: bigint;
     title: string;
     createdAt: bigint;
+    sold: boolean;
     description: string;
     imageUrl: string;
     artist: ArtistProfile;
@@ -184,6 +186,7 @@ export interface backendInterface {
     replaceDataset(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     submitArtwork(title: string, description: string, imageUrl: string, price: bigint): Promise<SubmissionResult>;
+    toggleArtworkSoldStatus(artworkId: bigint): Promise<void>;
     updateArtistProfile(newProfileName: string, newPublicSiteUsername: string, newBio: string, newWebsite: string): Promise<void>;
 }
 import type { ArtistProfile as _ArtistProfile, Artwork as _Artwork, ArtworkSubmission as _ArtworkSubmission, SubmissionStatus as _SubmissionStatus, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
@@ -522,6 +525,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.submitArtwork(arg0, arg1, arg2, arg3);
+            return result;
+        }
+    }
+    async toggleArtworkSoldStatus(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.toggleArtworkSoldStatus(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.toggleArtworkSoldStatus(arg0);
             return result;
         }
     }

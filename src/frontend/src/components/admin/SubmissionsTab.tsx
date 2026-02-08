@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2, Check, X } from 'lucide-react';
 import { SubmissionStatus } from '../../backend';
 import { formatGBP } from '../../utils/gbpMoney';
-import ArtworkImage from '../images/ArtworkImage';
+import SoldArtworkImage from '../artworks/SoldArtworkImage';
 import ArtworkLightbox from '../images/ArtworkLightbox';
 
 export default function SubmissionsTab() {
@@ -22,7 +22,7 @@ export default function SubmissionsTab() {
   const { mutate: approve, isPending: approving } = useApproveSubmission();
   const { mutate: reject, isPending: rejecting } = useRejectSubmission();
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string; sold: boolean } | null>(null);
 
   const getStatusBadge = (status: SubmissionStatus) => {
     switch (status) {
@@ -36,8 +36,8 @@ export default function SubmissionsTab() {
     }
   };
 
-  const handleImageClick = (src: string, alt: string) => {
-    setSelectedImage({ src, alt });
+  const handleImageClick = (src: string, alt: string, sold: boolean) => {
+    setSelectedImage({ src, alt, sold });
     setLightboxOpen(true);
   };
 
@@ -87,13 +87,15 @@ export default function SubmissionsTab() {
                       <div className="flex items-center gap-3">
                         <div 
                           className="w-16 h-16 rounded overflow-hidden bg-muted flex-shrink-0 cursor-pointer"
-                          onClick={() => handleImageClick(submission.artwork.imageUrl, submission.artwork.title)}
+                          onClick={() => handleImageClick(submission.artwork.imageUrl, submission.artwork.title, submission.artwork.sold)}
                         >
-                          <ArtworkImage
+                          <SoldArtworkImage
                             src={submission.artwork.imageUrl}
                             alt={submission.artwork.title}
+                            sold={submission.artwork.sold}
                             className="w-full h-full object-cover"
                             aspectClassName="w-16 h-16"
+                            watermarkSize="sm"
                           />
                         </div>
                         <div>
@@ -148,6 +150,7 @@ export default function SubmissionsTab() {
           alt={selectedImage.alt}
           open={lightboxOpen}
           onOpenChange={setLightboxOpen}
+          sold={selectedImage.sold}
         />
       )}
     </>

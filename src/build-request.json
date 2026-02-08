@@ -1,96 +1,59 @@
 {
   "kind": "build_request",
-  "title": "Add private profile name plus unique public site username in new profile creation flow",
+  "title": "Grant caller admin review permissions (no UI)",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the backend artist-profile data model and APIs to support both (a) a private internal profile name and (b) a public site username used for display across the site.",
+      "text": "Add a canister-level admin authorization mechanism that allows the user to become an admin with full review permissions (approve/reject artwork submissions) without adding any new admin-management UI.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-11",
+          "msg-12",
+          "msg-13",
+          "msg-14"
         ],
         "quotes": [
-          "When profiles are created allow both a name for the profile plus a site username for display",
-          "Unique user names",
-          "site username public only",
-          "brand new profile flow"
+          "Make me admin",
+          "1 yes\n2 full review permissions \n3 no",
+          "Great — I’ll add your Internet Identity principal to the canister’s admins list and give admins full review permissions, with no new UI required.",
+          "Proceed"
         ]
       },
       "acceptanceCriteria": [
-        "Backend exposes an artist profile type that contains both a private profileName and a public username.",
-        "Backend exposes a public artist profile view that does not include the private profileName.",
-        "Calls that return artist/artist lists used for public pages return only the public view (no private profileName).",
-        "Caller-only endpoints for the signed-in artist can return the full artist profile including private profileName."
+        "After the update is deployed, the user can log in with Internet Identity and is recognized as an admin by the backend (e.g., `isCallerAdmin()` returns true for that identity).",
+        "Admin-only backend operations for reviewing submissions (e.g., approve/reject and viewing all submissions) succeed for the admin and are rejected for non-admins.",
+        "No new frontend pages, buttons, or admin-management UI are added."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Enforce uniqueness of the public site username when creating or updating an artist profile, and return a clear error when the username is already taken.",
+      "text": "Ensure admin authorization state persists across canister upgrades so that admin access is not lost on redeploy.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-8"
         ],
         "quotes": [
-          "Unique user names"
+          "Pending review artworks are stored in the canister’s `submissions` map."
         ]
       },
       "acceptanceCriteria": [
-        "Creating an artist profile fails if any existing artist profile already uses the requested username.",
-        "Updating an artist profile fails if the new username is used by a different principal.",
-        "The error message for collisions is user-readable (e.g., 'Username already taken. Please choose a different one.')."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Implement a brand-new artist profile creation flow in the frontend that collects both fields: a private profile name and a public site username, with appropriate form validation and error handling.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-3"
-        ],
-        "quotes": [
-          "When profiles are created allow both a name for the profile plus a site username for display",
-          "brand new profile flow"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The creation form includes separate inputs for profile name (private/internal) and username (public display name).",
-        "The username field has client-side validation (required; allowed character set; length constraints) and shows inline validation errors.",
-        "On username uniqueness errors returned by the backend, the UI displays the backend error message without crashing.",
-        "On successful creation, the UI shows a success confirmation and refreshes any cached artist/profile data that depends on the artist profile."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Ensure that public-facing pages/components display the public site username and never display the private profile name for any artist other than the authenticated owner view.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-3"
-        ],
-        "quotes": [
-          "site username public only"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Artists list/cards and any artwork/artist display surfaces show artist.username as the display name.",
-        "The artist public profile page shows the username (and other public fields) but not the private profileName.",
-        "The edit/owner-only artist profile view allows viewing/editing both profileName (private) and username (public)."
+        "Admin status remains intact after an upgrade/redeploy (no need to re-bootstrap admin access).",
+        "If a state migration is required due to schema/state changes, provide it using the project’s conditional migration policy; otherwise, do not add a migration."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo; create backend/migration.mo only if an upgrade requires state migration.",
-    "Do not edit files under frontend/src/components/ui or any frontend paths listed as immutable in SYSTEM_CONTEXT.",
-    "Use English for all user-facing text."
+    "Backend must remain a single Motoko actor with all logic in `backend/main.mo` (per project architecture).",
+    "Do not add or require any new admin-management UI (per user request).",
+    "Do not modify files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or anything in `frontend/src/components/ui` (immutable paths)."
   ],
   "nonGoals": [
-    "Implement third-party authentication (only Internet Identity is supported).",
-    "Add real-time features (e.g., WebSockets) for username availability checks.",
-    "Introduce external databases or non-Motoko backend services."
+    "Restoring previously uploaded artwork that was not persisted in Version 27/28.",
+    "Adding a UI to manage admins (add/remove/list admins).",
+    "Adding additional admin powers beyond full review permissions for artwork submissions unless already present."
   ],
   "imageRequirements": {
     "required": [],

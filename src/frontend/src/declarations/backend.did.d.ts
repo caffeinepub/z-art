@@ -22,6 +22,7 @@ export interface Artwork {
   'id' : bigint,
   'title' : string,
   'createdAt' : bigint,
+  'sold' : boolean,
   'description' : string,
   'imageUrl' : string,
   'artist' : ArtistProfile,
@@ -47,6 +48,7 @@ export interface PublicArtwork {
   'id' : bigint,
   'title' : string,
   'createdAt' : bigint,
+  'sold' : boolean,
   'description' : string,
   'imageUrl' : string,
   'artist' : PublicArtistProfile,
@@ -111,6 +113,7 @@ export interface _SERVICE {
     [string, string, string, bigint],
     SubmissionResult
   >,
+  'toggleArtworkSoldStatus' : ActorMethod<[bigint], undefined>,
   'updateArtistProfile' : ActorMethod<
     [string, string, string, string],
     undefined

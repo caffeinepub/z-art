@@ -16,13 +16,22 @@ export function useEditArtwork() {
   return useMutation<void, Error, EditArtworkParams>({
     mutationFn: async (params: EditArtworkParams) => {
       if (!actor) throw new Error('Actor not available');
-      return await actor.editArtwork(
-        params.artworkId,
-        params.title,
-        params.description,
-        params.imageUrl,
-        params.price
-      );
+      
+      try {
+        return await actor.editArtwork(
+          params.artworkId,
+          params.title,
+          params.description,
+          params.imageUrl,
+          params.price
+        );
+      } catch (error: any) {
+        // Normalize backend trap messages to Error.message for UI display
+        // Backend traps like "Unauthorized: Only the original artist can edit this artwork"
+        // or "You must have an existing user profile to edit artworks" will be surfaced
+        const errorMessage = error.message || String(error);
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: (_, variables) => {
       // Invalidate all artworks list
