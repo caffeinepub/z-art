@@ -122,7 +122,7 @@ export interface PurchaseInquiry {
 export interface UserProfile {
     bio: string;
     name: string;
-    email: string;
+    email?: string;
     avatar?: string;
 }
 export interface ArtistProfile {
@@ -532,18 +532,18 @@ function from_candid_opt_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 function from_candid_record_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     bio: string;
     name: string;
-    email: string;
+    email: [] | [string];
     avatar: [] | [string];
 }): {
     bio: string;
     name: string;
-    email: string;
+    email?: string;
     avatar?: string;
 } {
     return {
         bio: value.bio,
         name: value.name,
-        email: value.email,
+        email: record_opt_to_undefined(from_candid_opt_n12(_uploadFile, _downloadFile, value.email)),
         avatar: record_opt_to_undefined(from_candid_opt_n12(_uploadFile, _downloadFile, value.avatar))
     };
 }
@@ -604,18 +604,18 @@ function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint
 function to_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     bio: string;
     name: string;
-    email: string;
+    email?: string;
     avatar?: string;
 }): {
     bio: string;
     name: string;
-    email: string;
+    email: [] | [string];
     avatar: [] | [string];
 } {
     return {
         bio: value.bio,
         name: value.name,
-        email: value.email,
+        email: value.email ? candid_some(value.email) : candid_none(),
         avatar: value.avatar ? candid_some(value.avatar) : candid_none()
     };
 }

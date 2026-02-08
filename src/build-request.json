@@ -1,92 +1,91 @@
 {
   "kind": "build_request",
-  "title": "Redesign backend storage for stable persistence and automatic migration from Version 14",
+  "title": "Make gallery public; require profile only for uploads and interactions",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement stable-memory persistence for all application data so that users and uploads from Version 14 (user profiles, artist profiles, artworks, submissions, purchase inquiries, and ID counters) are preserved across canister upgrades automatically, with no manual trigger.",
-      "target": "backend",
+      "text": "Allow all gallery browsing flows to work without requiring authentication or a completed user profile, including: viewing the Gallery page, viewing an Artwork details page, viewing the Artists list, and viewing an individual Artist profile page.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-6"
         ],
         "quotes": [
-          "From version 14. Redesign storage for persistence. Automatically preserve and migrate without manual trigger."
+          "All gallery content viewable without a profile. Profile needed for uploading content and interactions."
         ]
       },
       "acceptanceCriteria": [
-        "After upgrading the canister, previously created user profiles, artist profiles, artworks (including their imageUrl fields), submissions, inquiries, and ID counters are still present and queryable.",
-        "No admin/user action (UI or backend call) is required to preserve state during upgrades.",
-        "A fresh deploy/upgrade cycle does not reset nextArtworkId/nextSubmissionId/nextInquiryId if existing data is present."
+        "A signed-out (anonymous) user can visit /gallery and see artworks without being prompted to create a profile.",
+        "A signed-out (anonymous) user can open /artwork/:artworkId and view all artwork details without being prompted to create a profile.",
+        "A signed-out (anonymous) user can visit /artists and /artist/:artistId and view artist information without being prompted to create a profile.",
+        "An authenticated user who has not created a user profile is not blocked by any profile setup modal while browsing /gallery, /artwork/:artworkId, /artists, or /artist/:artistId."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add explicit upgrade hooks to serialize in-memory Maps and other runtime state into stable variables on upgrade (preupgrade) and restore them on install/upgrade completion (postupgrade), ensuring the runtime Maps are rehydrated correctly.",
-      "target": "backend",
+      "text": "Change the profile setup gating so that the profile setup modal is not shown globally during normal browsing; instead, require a completed user profile only at the point of restricted actions (uploading content and interactions).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-6"
         ],
         "quotes": [
-          "Redesign storage for persistence. Automatically preserve and migrate without manual trigger."
+          "Profile needed for uploading content and interactions."
         ]
       },
       "acceptanceCriteria": [
-        "Before upgrade, all Map-backed collections (userProfiles, artistProfiles, artworks, submissions, inquiries) and counters are written into stable storage in a format that can be decoded after upgrade.",
-        "After upgrade, the in-memory Maps are reconstructed from stable storage such that query methods (e.g., getArtworks, getArtistProfiles, getCallerUserProfile) return the same data as before upgrade.",
-        "If stable storage is empty (first install), the canister initializes with empty datasets and counters set to their initial values."
+        "The profile setup modal does not automatically open site-wide just because an authenticated user lacks a profile.",
+        "When an authenticated user without a profile navigates to /submit, the UI blocks submission and clearly indicates they must complete their profile (existing behavior can remain, but must not rely on a site-wide forced modal).",
+        "The app still supports completing the user profile via the existing profile setup UI, using English user-facing text."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Implement a conditional, automatic migration path that restores data specifically from Version 14 state shape into the new stable storage format during upgrade, without requiring any manual trigger or admin intervention.",
-      "target": "backend",
+      "text": "Require a completed user profile for interaction flows in the artwork experience (at minimum: submitting a purchase inquiry). If a user is not authenticated or has no profile, the UI must prevent the interaction and prompt them to log in and/or complete their profile.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-6"
         ],
         "quotes": [
-          "From version 14. ... Automatically preserve and migrate without manual trigger."
+          "Profile needed for uploading content and interactions."
         ]
       },
       "acceptanceCriteria": [
-        "On upgrade from a canister running Version 14 state layout, the upgrade process detects the legacy state and migrates it into the new stable state automatically.",
-        "Migration preserves all existing entities and relationships (e.g., submissions referencing artworks; inquiries embedding artwork data) without data loss.",
-        "Migration is idempotent: repeating an upgrade (or upgrading again after the first successful migration) does not duplicate or corrupt data.",
-        "If the canister is not upgrading from Version 14, the migration path does not run and existing stable state is preserved."
+        "From an artwork detail page, a signed-out user cannot submit a purchase inquiry; the UI prompts them to log in first.",
+        "From an artwork detail page, an authenticated user without a profile cannot submit a purchase inquiry; the UI prompts them to complete their profile first.",
+        "An authenticated user with a completed profile can submit a purchase inquiry successfully (no regression)."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Ensure all mutating operations update the persisted state correctly so that post-upgrade state matches pre-upgrade state, including admin dataset replacement (replaceDataset) and all create/edit/delete flows.",
-      "target": "backend",
+      "text": "Fix the issue where the Artists page does not list all expected artists by ensuring the frontend always renders the full set of artists returned by the backend and by resolving any filtering/caching logic that could cause the list to appear incomplete.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-3"
         ],
         "quotes": [
-          "Redesign storage for persistence. Automatically preserve and migrate without manual trigger."
+          "Not all artists are listed"
         ]
       },
       "acceptanceCriteria": [
-        "After calling replaceDataset and then upgrading the canister, the replaced dataset remains present (it does not revert to older data or empty state).",
-        "After creating/editing/deleting artworks and submissions and then upgrading the canister, the changes remain present.",
-        "No mutating operation leaves stable persistence in a partially updated state that causes traps or missing data after upgrade."
+        "/artists displays all artist profiles returned by the backend call that powers the Artists page.",
+        "Refreshing the page or navigating away/back does not cause the Artists list to drop entries unexpectedly.",
+        "If the backend returns N artists, the UI renders N artist cards (unless intentionally paginated, which is not required here)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo (no multi-canister or multi-service architecture).",
-    "Do not introduce external databases or non-Motoko backend components.",
-    "Use English for any user-facing/trap/error strings added or modified as part of this work.",
-    "Frontend immutable paths (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui) must not be edited."
+    "Do not edit any files under frontend/src/components/ui (read-only).",
+    "Do not modify immutable frontend hook files: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx.",
+    "Backend must remain a single Motoko actor in backend/main.mo; only add migration.mo if a state upgrade is required."
   ],
   "nonGoals": [
-    "Rebuilding or redeploying the old Version 14 canister outside of the standard upgrade mechanism.",
-    "Adding new UI controls to manually trigger migration or restoration.",
-    "Adding new product features unrelated to persistence/migration (e.g., new gallery functionality, new admin features beyond ensuring existing ones remain consistent)."
+    "Adding new interaction types (likes, comments, follows) beyond gating the existing interaction flow(s).",
+    "Changing backend authorization rules for public reads (artworks/artists) unless required to make public viewing work.",
+    "Adding third-party authentication providers (only Internet Identity is supported)."
   ],
   "imageRequirements": {
     "required": [],

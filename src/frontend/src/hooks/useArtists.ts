@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
+import { useInternetIdentity } from './useInternetIdentity';
 import type { ArtistProfile } from '../backend';
 
 export function useArtists() {
@@ -12,6 +13,7 @@ export function useArtists() {
       return actor.getArtistProfiles();
     },
     enabled: !!actor && !actorFetching,
+    staleTime: 30000, // Cache for 30 seconds to prevent unnecessary refetches
   });
 }
 
@@ -31,6 +33,7 @@ export function useArtistById(artistId: bigint) {
 
 export function useGetCallerArtistProfile() {
   const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
 
   const query = useQuery<ArtistProfile | null>({
     queryKey: ['callerArtistProfile'],
@@ -43,14 +46,14 @@ export function useGetCallerArtistProfile() {
         return null;
       }
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && !!identity,
     retry: false,
   });
 
   return {
     ...query,
     isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched,
+    isFetched: !!actor && !!identity && query.isFetched,
   };
 }
 
@@ -70,8 +73,11 @@ export function useCreateArtistProfile() {
       await actor.createArtistProfile(params.name, params.bio, params.website);
     },
     onSuccess: () => {
+      // Invalidate both the caller's artist profile and the full artists list
       queryClient.invalidateQueries({ queryKey: ['callerArtistProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['artists'] });
       queryClient.refetchQueries({ queryKey: ['callerArtistProfile'] });
+      queryClient.refetchQueries({ queryKey: ['artists'] });
     },
   });
 }

@@ -55,7 +55,7 @@ export const ArtworkSubmission = IDL.Record({
 export const UserProfile = IDL.Record({
   'bio' : IDL.Text,
   'name' : IDL.Text,
-  'email' : IDL.Text,
+  'email' : IDL.Opt(IDL.Text),
   'avatar' : IDL.Opt(IDL.Text),
 });
 export const SubmissionResult = IDL.Record({ 'submissionId' : IDL.Nat });
@@ -165,7 +165,7 @@ export const idlFactory = ({ IDL }) => {
   const UserProfile = IDL.Record({
     'bio' : IDL.Text,
     'name' : IDL.Text,
-    'email' : IDL.Text,
+    'email' : IDL.Opt(IDL.Text),
     'avatar' : IDL.Opt(IDL.Text),
   });
   const SubmissionResult = IDL.Record({ 'submissionId' : IDL.Nat });

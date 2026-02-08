@@ -1,16 +1,18 @@
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetCallerUserProfile, useSaveCallerUserProfile } from '../hooks/useAuthz';
+import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Loader2, AlertCircle, CheckCircle2, Upload, X, User } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Loader2, AlertCircle, Upload, X, User, Save } from 'lucide-react';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useGetCallerUserProfile, useSaveCallerUserProfile } from '../hooks/useAuthz';
+import { useProfileSetup } from '../components/auth/ProfileSetupProvider';
 import { fileToDataUrl } from '../utils/fileToDataUrl';
+import { normalizeEmailForBackend, normalizeEmailForDisplay } from '../utils/optionalEmail';
 import type { UserProfile } from '../backend';
 
 interface FormData {
@@ -20,21 +22,25 @@ interface FormData {
 }
 
 export default function MyProfilePage() {
-  const { identity } = useInternetIdentity();
+  const navigate = useNavigate();
+  const { identity, login, loginStatus } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-  const { mutate: saveProfile, isPending, isSuccess } = useSaveCallerUserProfile();
+  const { mutate: saveProfile, isPending } = useSaveCallerUserProfile();
+  const { openProfileSetup } = useProfileSetup();
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [avatarChanged, setAvatarChanged] = useState(false);
 
   const isAuthenticated = !!identity;
+  const isLoggingIn = loginStatus === 'logging-in';
 
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors, isDirty },
+    reset,
   } = useForm<FormData>({
     defaultValues: {
       name: '',
@@ -43,12 +49,12 @@ export default function MyProfilePage() {
     },
   });
 
-  // Reset form and avatar when profile data loads
+  // Load profile data into form when available
   useEffect(() => {
     if (userProfile) {
       reset({
         name: userProfile.name,
-        email: userProfile.email,
+        email: normalizeEmailForDisplay(userProfile.email),
         bio: userProfile.bio,
       });
       setAvatarPreview(userProfile.avatar || null);
@@ -72,23 +78,26 @@ export default function MyProfilePage() {
 
   const handleRemoveAvatar = () => {
     setAvatarPreview(null);
-    setAvatarChanged(true);
     setAvatarError(null);
-    // Reset the file input
+    setAvatarChanged(true);
     const fileInput = document.getElementById('avatar-upload') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   };
 
   const onSubmit = (data: FormData) => {
     setError(null);
+    setSuccess(false);
     const profileData: UserProfile = {
-      ...data,
+      name: data.name,
+      email: normalizeEmailForBackend(data.email),
+      bio: data.bio,
       avatar: avatarPreview || undefined,
     };
     saveProfile(profileData, {
       onSuccess: () => {
-        reset(data); // Reset form with new values to clear isDirty
+        setSuccess(true);
         setAvatarChanged(false);
+        setTimeout(() => setSuccess(false), 3000);
       },
       onError: (err) => {
         setError(err instanceof Error ? err.message : 'Failed to save profile');
@@ -96,197 +105,226 @@ export default function MyProfilePage() {
     });
   };
 
-  // Check if there are any changes (form or avatar)
   const hasChanges = isDirty || avatarChanged;
 
-  // Show login prompt if not authenticated
   if (!isAuthenticated) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle className="font-display text-2xl">My Profile</CardTitle>
-            <CardDescription>Please log in to view and edit your profile</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                You need to be logged in to access your profile. Please use the login button in the header.
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
+        <div className="max-w-2xl mx-auto">
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>Please log in to view your profile.</span>
+              <Button
+                onClick={() => login()}
+                disabled={isLoggingIn}
+                size="sm"
+              >
+                {isLoggingIn ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  'Log In'
+                )}
+              </Button>
+            </AlertDescription>
+          </Alert>
+        </div>
       </div>
     );
   }
 
-  // Show loading state
   if (profileLoading) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <Card className="max-w-2xl mx-auto">
-          <CardContent className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </CardContent>
-        </Card>
+        <div className="max-w-2xl mx-auto flex justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </div>
     );
   }
 
-  // Show message if profile doesn't exist yet
-  if (isFetched && !userProfile) {
+  if (isFetched && userProfile === null) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle className="font-display text-2xl">My Profile</CardTitle>
-            <CardDescription>Your profile is being set up</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Please complete the profile setup modal to create your profile.
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
+        <div className="max-w-2xl mx-auto">
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>You haven't created a profile yet. Please complete your profile to continue.</span>
+              <Button
+                onClick={() => openProfileSetup()}
+                size="sm"
+              >
+                Complete Profile
+              </Button>
+            </AlertDescription>
+          </Alert>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="font-display text-2xl">My Profile</CardTitle>
-          <CardDescription>View and update your profile information</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+      <div className="max-w-2xl mx-auto">
+        <div className="mb-8">
+          <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">My Profile</h1>
+          <p className="text-lg text-muted-foreground">
+            Manage your personal information
+          </p>
+        </div>
 
-            {isSuccess && !hasChanges && (
-              <Alert className="border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-100">
-                <CheckCircle2 className="h-4 w-4" />
-                <AlertDescription>Profile updated successfully!</AlertDescription>
-              </Alert>
-            )}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-            {/* Avatar Section */}
-            <div className="space-y-2">
-              <Label>Profile Picture</Label>
-              <div className="flex items-center gap-4">
-                <Avatar className="h-24 w-24">
-                  {avatarPreview ? (
-                    <AvatarImage src={avatarPreview} alt="Profile avatar" />
-                  ) : (
-                    <AvatarFallback>
-                      <User className="h-12 w-12 text-muted-foreground" />
-                    </AvatarFallback>
-                  )}
-                </Avatar>
-                <div className="flex flex-col gap-2">
-                  <div className="flex gap-2">
+          {success && (
+            <Alert className="border-primary bg-primary/10">
+              <AlertCircle className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-primary">
+                Profile updated successfully!
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Avatar Upload Section */}
+          <div className="space-y-2">
+            <Label>Profile Picture</Label>
+            <div className="flex items-center gap-4">
+              <Avatar className="h-24 w-24">
+                {avatarPreview ? (
+                  <AvatarImage src={avatarPreview} alt="Avatar preview" />
+                ) : (
+                  <AvatarFallback>
+                    <User className="h-12 w-12 text-muted-foreground" />
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById('avatar-upload')?.click()}
+                    disabled={isPending}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    {avatarPreview ? 'Change' : 'Upload'}
+                  </Button>
+                  {avatarPreview && (
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      onClick={() => document.getElementById('avatar-upload')?.click()}
+                      onClick={handleRemoveAvatar}
+                      disabled={isPending}
                     >
-                      <Upload className="mr-2 h-4 w-4" />
-                      {avatarPreview ? 'Change' : 'Upload'}
+                      <X className="mr-2 h-4 w-4" />
+                      Remove
                     </Button>
-                    {avatarPreview && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleRemoveAvatar}
-                      >
-                        <X className="mr-2 h-4 w-4" />
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Max 5MB, JPG, PNG, or GIF
-                  </p>
+                  )}
                 </div>
-                <input
-                  id="avatar-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                  className="hidden"
-                />
+                <p className="text-xs text-muted-foreground">
+                  Max 5MB, JPG, PNG, or GIF
+                </p>
               </div>
-              {avatarError && (
-                <p className="text-sm text-destructive">{avatarError}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
-              <Input
-                id="name"
-                {...register('name', { required: 'Name is required' })}
-                placeholder="Your name"
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+                disabled={isPending}
               />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
-              )}
             </div>
+            {avatarError && (
+              <p className="text-sm text-destructive">{avatarError}</p>
+            )}
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                {...register('email', {
-                  required: 'Email is required',
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Invalid email address',
-                  },
-                })}
-                placeholder="your@email.com"
-              />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="name">Name *</Label>
+            <Input
+              id="name"
+              {...register('name', { required: 'Name is required' })}
+              placeholder="Your name"
+              disabled={isPending}
+            />
+            {errors.name && (
+              <p className="text-sm text-destructive">{errors.name.message}</p>
+            )}
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea
-                id="bio"
-                {...register('bio')}
-                placeholder="Tell us about yourself"
-                rows={4}
-              />
-              <p className="text-sm text-muted-foreground">Optional</p>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              {...register('email', {
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Invalid email address',
+                },
+              })}
+              placeholder="your@email.com"
+              disabled={isPending}
+            />
+            <p className="text-sm text-muted-foreground">Optional</p>
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email.message}</p>
+            )}
+          </div>
 
-            <Button type="submit" disabled={isPending || !hasChanges} className="w-full">
+          <div className="space-y-2">
+            <Label htmlFor="bio">Bio</Label>
+            <Textarea
+              id="bio"
+              {...register('bio')}
+              placeholder="Tell us about yourself"
+              rows={4}
+              disabled={isPending}
+            />
+            <p className="text-sm text-muted-foreground">Optional</p>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate({ to: '/' })}
+              disabled={isPending}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isPending || !hasChanges}
+              className="flex-1"
+            >
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Saving...
                 </>
               ) : (
-                'Save Changes'
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
               )}
             </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

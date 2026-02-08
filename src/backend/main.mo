@@ -11,13 +11,13 @@ import Order "mo:core/Order";
 
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   public type UserProfile = {
     name : Text;
-    email : Text;
+    email : ?Text;
     bio : Text;
     avatar : ?Text;
   };

@@ -4,6 +4,8 @@ import { useArtworkById } from '../hooks/useArtworks';
 import { useMySubmissions } from '../hooks/useMySubmissions';
 import { useDeleteArtwork } from '../hooks/useDeleteArtwork';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useGetCallerUserProfile } from '../hooks/useAuthz';
+import { useProfileSetup } from '../components/auth/ProfileSetupProvider';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -25,13 +27,18 @@ import { toast } from 'sonner';
 export default function ArtworkDetailsPage() {
   const { artworkId } = useParams({ from: '/artwork/$artworkId' });
   const navigate = useNavigate();
-  const { identity } = useInternetIdentity();
+  const { identity, login, loginStatus } = useInternetIdentity();
   const { data: artwork, isLoading } = useArtworkById(BigInt(artworkId));
   const { data: mySubmissions } = useMySubmissions();
+  const { data: userProfile, isLoading: profileLoading } = useGetCallerUserProfile();
+  const { openProfileSetup } = useProfileSetup();
   const deleteArtwork = useDeleteArtwork();
   const [inquiryDialogOpen, setInquiryDialogOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const isAuthenticated = !!identity;
+  const isLoggingIn = loginStatus === 'logging-in';
 
   // Check if the current user owns this artwork
   const isOwner = identity && mySubmissions?.some(
@@ -49,6 +56,24 @@ export default function ArtworkDetailsPage() {
       toast.error(error.message || 'Failed to delete artwork');
       setDeleteDialogOpen(false);
     }
+  };
+
+  const handleInquiryClick = () => {
+    // Check authentication first
+    if (!isAuthenticated) {
+      toast.error('Please log in to submit a purchase inquiry');
+      return;
+    }
+
+    // Check profile completion
+    if (!profileLoading && userProfile === null) {
+      toast.error('Please complete your profile before submitting an inquiry');
+      openProfileSetup();
+      return;
+    }
+
+    // Open inquiry dialog
+    setInquiryDialogOpen(true);
   };
 
   if (isLoading) {
@@ -139,59 +164,69 @@ export default function ArtworkDetailsPage() {
                   className="flex-1"
                 >
                   {deleteArtwork.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
                   ) : (
-                    <Trash2 className="mr-2 h-4 w-4" />
+                    <>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </>
                   )}
-                  Delete
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setInquiryDialogOpen(true)} className="flex-1">
-                Inquire to Purchase
+              <Button
+                onClick={handleInquiryClick}
+                disabled={isLoggingIn || profileLoading}
+                className="w-full"
+              >
+                {isLoggingIn || profileLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  'Inquire About Purchase'
+                )}
               </Button>
             )}
           </div>
         </div>
       </div>
 
-      <PurchaseInquiryDialog
-        artwork={artwork}
-        open={inquiryDialogOpen}
-        onOpenChange={setInquiryDialogOpen}
-      />
-
-      <ArtworkLightbox
-        src={artwork.imageUrl}
-        alt={artwork.title}
-        open={lightboxOpen}
-        onOpenChange={setLightboxOpen}
-      />
+      {artwork && (
+        <>
+          <PurchaseInquiryDialog
+            artwork={artwork}
+            open={inquiryDialogOpen}
+            onOpenChange={setInquiryDialogOpen}
+          />
+          <ArtworkLightbox
+            src={artwork.imageUrl}
+            alt={artwork.title}
+            open={lightboxOpen}
+            onOpenChange={setLightboxOpen}
+          />
+        </>
+      )}
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Artwork</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{artwork.title}"? This action cannot be undone. 
-              All associated submissions and purchase inquiries will also be removed.
+              Are you sure you want to delete "{artwork.title}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteArtwork.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={deleteArtwork.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteArtwork.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                'Delete'
-              )}
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

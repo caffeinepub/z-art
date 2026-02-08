@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, Upload, X, RefreshCw, Trash2 } from 'lucide-react';
 import { useSubmitArtwork } from '../../hooks/useSubmitArtwork';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
+import { useGetCallerUserProfile } from '../../hooks/useAuthz';
 import { useGetCallerArtistProfile } from '../../hooks/useArtists';
 import { fileToDataUrl } from '../../utils/fileToDataUrl';
 import { parseGBPToMinorUnits } from '../../utils/gbpMoney';
@@ -28,12 +29,14 @@ interface FormData {
 
 export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps) {
   const { identity } = useInternetIdentity();
-  const { data: artistProfile, isLoading: profileLoading, isFetched } = useGetCallerArtistProfile();
+  const { data: userProfile, isLoading: userProfileLoading, isFetched: userProfileFetched } = useGetCallerUserProfile();
+  const { data: artistProfile, isLoading: artistProfileLoading, isFetched: artistProfileFetched } = useGetCallerArtistProfile();
   const { mutate: submitArtwork, isPending } = useSubmitArtwork();
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [showProfileForm, setShowProfileForm] = useState(false);
+  const [showArtistProfileForm, setShowArtistProfileForm] = useState(false);
+  const [artistProfileCreated, setArtistProfileCreated] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -73,6 +76,14 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
       imagePreview,
     });
   }, [formValues.title, formValues.description, formValues.price, imagePreview]);
+
+  // Auto-exit artist profile form when profile becomes available
+  useEffect(() => {
+    if (artistProfileFetched && artistProfile !== null && showArtistProfileForm) {
+      setShowArtistProfileForm(false);
+      setArtistProfileCreated(true);
+    }
+  }, [artistProfile, artistProfileFetched, showArtistProfileForm]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -125,6 +136,11 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
       return;
     }
 
+    if (!userProfile) {
+      setError('Please complete your user profile first');
+      return;
+    }
+
     if (!artistProfile) {
       setError('Please create an artist profile first');
       return;
@@ -170,7 +186,8 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
     );
   }
 
-  if (profileLoading) {
+  // Wait for user profile check
+  if (userProfileLoading) {
     return (
       <div className="flex justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -178,15 +195,37 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
     );
   }
 
-  const showCreateProfile = isFetched && artistProfile === null;
+  // Block if no user profile
+  if (userProfileFetched && userProfile === null) {
+    return (
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Please complete your user profile before submitting artwork. The profile setup will appear automatically.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
-  if (showCreateProfile && !showProfileForm) {
+  // Wait for artist profile check
+  if (artistProfileLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show artist profile creation if needed
+  const needsArtistProfile = artistProfileFetched && artistProfile === null && !artistProfileCreated;
+
+  if (needsArtistProfile && !showArtistProfileForm) {
     return (
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription className="flex flex-col gap-3">
           <span>You need to create an artist profile before submitting artwork.</span>
-          <Button onClick={() => setShowProfileForm(true)} size="sm" className="w-fit">
+          <Button onClick={() => setShowArtistProfileForm(true)} size="sm" className="w-fit">
             Create Artist Profile
           </Button>
         </AlertDescription>
@@ -194,8 +233,14 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
     );
   }
 
-  if (showProfileForm) {
-    return <CreateArtistProfileForm onSuccess={() => setShowProfileForm(false)} />;
+  if (showArtistProfileForm) {
+    return (
+      <CreateArtistProfileForm
+        onSuccess={() => {
+          // The useEffect will handle closing the form when profile is detected
+        }}
+      />
+    );
   }
 
   return (
@@ -243,56 +288,73 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="price">Price (GBP) *</Label>
+            <Input
+              id="price"
+              {...register('price', { required: 'Price is required' })}
+              placeholder="e.g., 150.00"
+              disabled={isPending}
+            />
+            <p className="text-sm text-muted-foreground">
+              Enter the price in pounds (e.g., 150.00 for £150)
+            </p>
+            {errors.price && (
+              <p className="text-sm text-destructive">{errors.price.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="image">Artwork Image *</Label>
             {imagePreview ? (
               <div className="space-y-3">
-                <div className="relative">
+                <div className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden">
                   <ArtworkImage
                     src={imagePreview}
-                    alt="Preview"
-                    className="w-full h-64 object-cover rounded-lg border"
-                    aspectClassName="h-64"
+                    alt="Artwork preview"
+                    className="w-full h-full object-contain"
                   />
                 </div>
                 <div className="flex gap-2">
                   <Button
                     type="button"
                     variant="outline"
+                    size="sm"
                     onClick={replaceImage}
                     disabled={isPending}
-                    className="flex-1"
                   >
-                    <RefreshCw className="h-4 w-4 mr-2" />
+                    <RefreshCw className="mr-2 h-4 w-4" />
                     Replace Image
                   </Button>
                   <Button
                     type="button"
-                    variant="destructive"
+                    variant="ghost"
+                    size="sm"
                     onClick={clearImage}
                     disabled={isPending}
-                    className="flex-1"
                   >
-                    <X className="h-4 w-4 mr-2" />
-                    Remove Image
+                    <X className="mr-2 h-4 w-4" />
+                    Remove
                   </Button>
                 </div>
               </div>
             ) : (
-              <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
-                <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <Label
-                  htmlFor="image"
-                  className="cursor-pointer text-sm text-muted-foreground hover:text-primary"
+              <div className="flex items-center gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isPending}
                 >
-                  Click to upload an image
-                  <br />
-                  <span className="text-xs">PNG, JPG, GIF up to 5MB</span>
-                </Label>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Choose Image
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  Max 5MB, JPG, PNG, or GIF
+                </p>
               </div>
             )}
-            <Input
+            <input
               ref={fileInputRef}
-              id="image"
               type="file"
               accept="image/*"
               onChange={handleImageChange}
@@ -301,34 +363,15 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="price">Price (GBP) *</Label>
-            <Input
-              id="price"
-              type="number"
-              step="0.01"
-              min="0"
-              {...register('price', {
-                required: 'Price is required',
-                min: { value: 0, message: 'Price must be positive' },
-              })}
-              placeholder="0.00"
-              disabled={isPending}
-            />
-            {errors.price && (
-              <p className="text-sm text-destructive">{errors.price.message}</p>
-            )}
-          </div>
-
-          <div className="flex gap-3">
-            <Button type="submit" className="flex-1" disabled={isPending || !imagePreview}>
+          <div className="flex gap-3 pt-4">
+            <Button type="submit" disabled={isPending} className="flex-1">
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Submitting...
                 </>
               ) : (
-                'Submit Artwork'
+                'Submit for Review'
               )}
             </Button>
             <Button
@@ -337,7 +380,7 @@ export default function SubmitArtworkForm({ onSuccess }: SubmitArtworkFormProps)
               onClick={handleDiscardDraft}
               disabled={isPending}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="mr-2 h-4 w-4" />
               Discard Draft
             </Button>
           </div>

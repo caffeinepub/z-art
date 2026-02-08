@@ -21,13 +21,13 @@ export default function ArtistsPage() {
         <div className="flex justify-center items-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      ) : artists && artists.length === 0 ? (
+      ) : !artists || artists.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-lg text-muted-foreground">No artists found</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {artists?.map((artist) => (
+          {artists.map((artist) => (
             <Card key={Number(artist.id)} className="hover:shadow-gallery transition-shadow">
               <CardHeader>
                 <CardTitle className="font-display text-2xl">{artist.name}</CardTitle>

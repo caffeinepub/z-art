@@ -12,14 +12,17 @@ import SubmitArtworkPage from './pages/SubmitArtworkPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import MyProfilePage from './pages/MyProfilePage';
 import ProfileSetupModal from './components/auth/ProfileSetupModal';
+import { ProfileSetupProvider } from './components/auth/ProfileSetupProvider';
 import AdminRouteGuard from './components/auth/AdminRouteGuard';
 
 const rootRoute = createRootRoute({
   component: () => (
-    <SiteLayout>
-      <ProfileSetupModal />
-      <Outlet />
-    </SiteLayout>
+    <ProfileSetupProvider>
+      <SiteLayout>
+        <ProfileSetupModal />
+        <Outlet />
+      </SiteLayout>
+    </ProfileSetupProvider>
   ),
 });
 

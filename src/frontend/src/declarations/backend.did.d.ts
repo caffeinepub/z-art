@@ -51,7 +51,7 @@ export type SubmissionStatus = { 'pending' : null } |
 export interface UserProfile {
   'bio' : string,
   'name' : string,
-  'email' : string,
+  'email' : [] | [string],
   'avatar' : [] | [string],
 }
 export type UserRole = { 'admin' : null } |

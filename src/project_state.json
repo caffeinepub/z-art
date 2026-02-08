@@ -1,54 +1,57 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Implement persistent storage and automatic upgrade migration to restore users and uploads from version 14 and preserve them across future canister upgrades.",
+  "summary": "New project",
   "architectural_notes": [
-    "Redesign user and upload storage to persist across canister upgrades (use stable storage + preupgrade/postupgrade migration) and include an automatic migration path from version 14 data."
+    "Public/anonymous users can browse all gallery content; authentication/profile is required only for write actions (uploading and interactions)."
   ],
-  "known_issues": [],
+  "known_issues": [
+    "Not all artists are listed (artists list appears incomplete)."
+  ],
   "isFixRequest": true,
-  "existing_features": [],
-  "new_feature_requests": [
+  "existing_features": [
     {
-      "id": "AR-1",
-      "summary": "Restore users and uploads from version 14 by redesigning storage for persistence and performing automatic upgrade preservation/migration with no manual trigger",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Implement stable-memory persistence for all application data so that users and uploads from Version 14 (user profiles, artist profiles, artworks, submissions, purchase inquiries, and ID counters) are preserved across canister upgrades automatically, with no manual trigger.",
+      "id": "feature-allow-all-gallery-browsing-flows-to-work-without-requiring-authentication-or-a-completed-user-profile-including-viewing-the-gallery-page-viewing-an-artwork-details-page-viewing-the-artists-list-and-viewing-an-individual-artist-profile-page",
+      "title": "Allow all gallery browsing flows to work without requiring authentication or a completed user profile, including: viewing the Gallery page, viewing an Artwork details page, viewing the Artists list, and viewing an individual Artist profile page.",
       "reqIds": [
         "REQ-1"
       ],
-      "status": "pending"
+      "version": 1
     },
     {
-      "id": "AR-3",
-      "summary": "Add explicit upgrade hooks to serialize in-memory Maps and other runtime state into stable variables on upgrade (preupgrade) and restore them on install/upgrade completion (postupgrade), ensuring the runtime Maps are rehydrated correctly.",
+      "id": "feature-change-the-profile-setup-gating-so-that-the-profile-setup-modal-is-not-shown-globally-during-normal-browsing-instead-require-a-completed-user-profile-only-at-the-point-of-restricted-actions-uploading-content-and-interactions",
+      "title": "Change the profile setup gating so that the profile setup modal is not shown globally during normal browsing; instead, require a completed user profile only at the point of restricted actions (uploading content and interactions).",
       "reqIds": [
         "REQ-2"
       ],
-      "status": "pending"
+      "version": 1
     },
     {
-      "id": "AR-4",
-      "summary": "Implement a conditional, automatic migration path that restores data specifically from Version 14 state shape into the new stable storage format during upgrade, without requiring any manual trigger or admin intervention.",
+      "id": "feature-require-a-completed-user-profile-for-interaction-flows-in-the-artwork-experience-at-minimum-submitting-a-purchase-inquiry-if-a-user-is-not-authenticated-or-has-no-profile-the-ui-must-prevent-the-interaction-and-prompt-them-to-log-in-and-or-complete-their-profile",
+      "title": "Require a completed user profile for interaction flows in the artwork experience (at minimum: submitting a purchase inquiry). If a user is not authenticated or has no profile, the UI must prevent the interaction and prompt them to log in and/or complete their profile.",
       "reqIds": [
         "REQ-3"
       ],
-      "status": "pending"
+      "version": 1
     },
     {
-      "id": "AR-5",
-      "summary": "Ensure all mutating operations update the persisted state correctly so that post-upgrade state matches pre-upgrade state, including admin dataset replacement (replaceDataset) and all create/edit/delete flows.",
+      "id": "feature-fix-the-issue-where-the-artists-page-does-not-list-all-expected-artists-by-ensuring-the-frontend-always-renders-the-full-set-of-artists-returned-by-the-backend-and-by-resolving-any-filtering-caching-logic-that-could-cause-the-list-to-appear-incomplete",
+      "title": "Fix the issue where the Artists page does not list all expected artists by ensuring the frontend always renders the full set of artists returned by the backend and by resolving any filtering/caching logic that could cause the list to appear incomplete.",
       "reqIds": [
         "REQ-4"
       ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Make all gallery content publicly viewable without a profile; require a profile only for uploading and interactions (like/ মন্তব্য/comment, etc.)",
+      "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Redesign backend storage for stable persistence and automatic migration from Version 14",
+  "projectName": "Make gallery public; require profile only for uploads and interactions",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

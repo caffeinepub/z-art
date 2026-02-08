@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from '@tanstack/react-router';
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,9 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Loader2, AlertCircle, Upload, X, User } from 'lucide-react';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { useGetCallerUserProfile, useSaveCallerUserProfile } from '../../hooks/useAuthz';
+import { useProfileSetup } from './ProfileSetupProvider';
 import { fileToDataUrl } from '../../utils/fileToDataUrl';
+import { normalizeEmailForBackend } from '../../utils/optionalEmail';
 import type { UserProfile } from '../../backend';
 
 interface FormData {
@@ -26,20 +29,23 @@ interface FormData {
 }
 
 export default function ProfileSetupModal() {
+  const navigate = useNavigate();
   const { identity } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
   const { mutate: saveProfile, isPending } = useSaveCallerUserProfile();
+  const { isOpen, closeProfileSetup } = useProfileSetup();
   const [error, setError] = useState<string | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState<string | null>(null);
 
   const isAuthenticated = !!identity;
-  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null && isOpen;
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<FormData>({
     defaultValues: {
       name: '',
@@ -47,6 +53,16 @@ export default function ProfileSetupModal() {
       bio: '',
     },
   });
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!showProfileSetup) {
+      reset();
+      setAvatarPreview(null);
+      setAvatarError(null);
+      setError(null);
+    }
+  }, [showProfileSetup, reset]);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -73,10 +89,17 @@ export default function ProfileSetupModal() {
   const onSubmit = (data: FormData) => {
     setError(null);
     const profileData: UserProfile = {
-      ...data,
+      name: data.name,
+      email: normalizeEmailForBackend(data.email),
+      bio: data.bio,
       avatar: avatarPreview || undefined,
     };
     saveProfile(profileData, {
+      onSuccess: () => {
+        closeProfileSetup();
+        // Navigate to home after successful profile creation
+        navigate({ to: '/' });
+      },
       onError: (err) => {
         setError(err instanceof Error ? err.message : 'Failed to save profile');
       },
@@ -171,12 +194,11 @@ export default function ProfileSetupModal() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email *</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
               {...register('email', {
-                required: 'Email is required',
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                   message: 'Invalid email address',
@@ -185,6 +207,7 @@ export default function ProfileSetupModal() {
               placeholder="your@email.com"
               disabled={isPending}
             />
+            <p className="text-sm text-muted-foreground">Optional</p>
             {errors.email && (
               <p className="text-sm text-destructive">{errors.email.message}</p>
             )}

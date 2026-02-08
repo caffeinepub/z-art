@@ -1,56 +1,64 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T06:17:47.179Z",
-  "summary": "The diff adds a migration module and wires a `migration` function into `backend/main.mo`, but it does not show any stable variables or explicit `preupgrade`/`postupgrade` hooks, nor any conditional detection/idempotent migration logic specific to Version 14. As provided, the changes are insufficient to demonstrate stable-memory persistence and automatic upgrade migration per REQ-1..REQ-4.",
+  "generatedAt": "2026-02-08T07:04:01.640Z",
+  "summary": "Diff adds an on-demand ProfileSetupProvider and updates profile modal behavior so it only opens when explicitly triggered; submission and purchase inquiry flows are gated by auth/profile checks. Artists list rendering was updated to map over the returned artists array without additional filtering, but there is limited evidence that all public-browsing flows (gallery/artwork/artist profile) are fully accessible without auth/profile, and the artists “incomplete list” root cause (filtering/caching) may not be fully addressed.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Implement stable-memory persistence for all application data so that users and uploads from Version 14 (user profiles, artist profiles, artworks, submissions, purchase inquiries, and ID counters) are preserved across canister upgrades automatically, with no manual trigger.",
-      "reason": "No evidence of stable variables holding serialized state, nor any code showing state being preserved across upgrades; `backend/main.mo` only shows in-memory `var` Maps/counters.",
+      "requirement": "Allow all gallery browsing flows to work without requiring authentication or a completed user profile (Gallery, Artwork details, Artists list, Artist profile).",
+      "reason": "The diff does not show changes to the Gallery page data fetching or the artwork/artist profile data fetching hooks to ensure they work for anonymous users; only Artists list hook changes are visible. If other hooks/pages still depend on authenticated identity/actor, browsing could still be blocked.",
       "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "requirement": "Add explicit upgrade hooks to serialize in-memory Maps and other runtime state into stable variables on upgrade (preupgrade) and restore them on install/upgrade completion (postupgrade), ensuring the runtime Maps are rehydrated correctly.",
-      "reason": "The diff does not show any `system func preupgrade` / `system func postupgrade` hooks or equivalent serialization/rehydration logic into/from stable storage.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "requirement": "Implement a conditional, automatic migration path that restores data specifically from Version 14 state shape into the new stable storage format during upgrade, without requiring any manual trigger or admin intervention.",
-      "reason": "`backend/migration.mo` defines Old/New types but `run` is a direct field pass-through with no Version 14 detection, no transformation to a new stable format, and no idempotency safeguards shown.",
-      "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo"
+        "frontend/src/hooks/useArtists.ts",
+        "frontend/src/pages/ArtistsPage.tsx",
+        "frontend/src/pages/ArtworkDetailsPage.tsx"
       ]
     },
     {
       "id": "REQ-4",
-      "requirement": "Ensure all mutating operations update the persisted state correctly so that post-upgrade state matches pre-upgrade state, including admin dataset replacement (replaceDataset) and all create/edit/delete flows.",
-      "reason": "No evidence of a persistence layer being updated by mutating operations (e.g., writing to stable storage) or of `replaceDataset` persistence behavior; only in-memory Map updates are visible in the provided truncation.",
+      "requirement": "Fix Artists page incomplete listing by ensuring the frontend always renders the full set of artists returned by the backend and resolving filtering/caching logic that could cause the list to appear incomplete.",
+      "reason": "While ArtistsPage now directly maps over `artists`, `useArtists` introduces a 30s `staleTime` cache and `useArtistById` derives an artist from the cached list rather than querying the backend by ID. The diff does not show explicit handling to prevent entries from dropping on refresh/navigation or to validate/render exactly N results returned by the backend across navigation events.",
       "evidence": [
-        "backend/main.mo"
+        "frontend/src/hooks/useArtists.ts",
+        "frontend/src/pages/ArtistsPage.tsx"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Introduced/updated project tracking metadata (project_state.json) with AR items and statuses.",
-      "reason": "The BuildRequest focuses on backend stable persistence and migration; it does not request adding or modifying repository/project state tracking files.",
+      "description": "Admin dashboard updated to include a ReplaceDatasetControl component prominently positioned above tabs.",
+      "reason": "Not requested by any REQ (scope is public browsing + profile gating + artists list completeness).",
       "evidence": [
-        "project_state.json"
+        "frontend-file-summaries.txt (AdminDashboardPage entry)"
+      ]
+    },
+    {
+      "description": "Gallery aesthetic/theme work (global OKLCH palette, Tailwind theme tokens, custom fonts).",
+      "reason": "Not requested; requirements are functional gating and artists list correctness.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/index.css, frontend/tailwind.config.js entries)"
+      ]
+    },
+    {
+      "description": "Submit artwork form enhancements (sessionStorage draft persistence, explicit replace/remove controls, artist profile creation auto-exit, discard draft action).",
+      "reason": "Not requested; REQ-2 only requires gating submit behind profile completion without a global forced modal.",
+      "evidence": [
+        "frontend-file-summaries.txt (SubmitArtworkForm entry)"
       ]
     }
   ],
   "confidence": 0.62,
   "changed_files": [
-    "backend/main.mo",
-    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/App.tsx",
+    "frontend/src/components/auth/ProfileSetupModal.tsx",
+    "frontend/src/components/auth/ProfileSetupProvider.tsx",
+    "frontend/src/components/inquiries/PurchaseInquiryDialog.tsx",
+    "frontend/src/hooks/useArtists.ts",
+    "frontend/src/pages/ArtistsPage.tsx",
+    "frontend/src/pages/ArtworkDetailsPage.tsx",
+    "frontend/src/pages/MyProfilePage.tsx",
+    "frontend/src/pages/SubmitArtworkPage.tsx",
     "project_state.json"
   ]
 }

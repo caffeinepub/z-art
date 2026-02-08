@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useInternetIdentity } from './useInternetIdentity';
+import { normalizeEmailForBackend } from '../utils/optionalEmail';
 import type { UserProfile, UserRole } from '../backend';
 
 export function useGetCallerUserProfile() {
@@ -31,9 +32,18 @@ export function useSaveCallerUserProfile() {
   return useMutation({
     mutationFn: async (profile: UserProfile) => {
       if (!actor) throw new Error('Actor not available');
-      await actor.saveCallerUserProfile(profile);
+      // Defensive normalization: ensure empty email strings are converted to undefined
+      const normalizedProfile: UserProfile = {
+        ...profile,
+        email: normalizeEmailForBackend(profile.email),
+      };
+      await actor.saveCallerUserProfile(normalizedProfile);
+      return normalizedProfile;
     },
-    onSuccess: () => {
+    onSuccess: (savedProfile) => {
+      // Immediately update the cache with the saved profile
+      queryClient.setQueryData(['currentUserProfile'], savedProfile);
+      // Also invalidate to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
     },
   });
@@ -61,4 +71,3 @@ export function useAuthz() {
     isLoading: actorFetching || isLoading,
   };
 }
-

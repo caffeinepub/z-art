@@ -40,7 +40,7 @@ export interface PurchaseInquiry {
 export interface UserProfile {
     bio: string;
     name: string;
-    email: string;
+    email?: string;
     avatar?: string;
 }
 export interface ArtistProfile {

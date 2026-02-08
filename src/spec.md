@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Redesign backend storage to ensure all application data persists across canister upgrades and automatically migrates from Version 14 without any manual action.
+**Goal:** Make gallery and artist browsing fully public, while requiring a completed profile only when users upload or interact (e.g., purchase inquiry).
 
 **Planned changes:**
-- Add stable-memory persistence for all core datasets (user profiles, artist profiles, artworks, submissions, purchase inquiries) and ID counters so they survive upgrades.
-- Implement explicit upgrade hooks (preupgrade/postupgrade) to serialize runtime Maps/counters into stable storage and rehydrate them on upgrade completion.
-- Add an automatic, conditional migration that detects Version 14 state shape during upgrade and converts it into the new stable format in an idempotent way.
-- Ensure all mutating operations (including replaceDataset and create/edit/delete flows) correctly update persisted state so post-upgrade data matches pre-upgrade data.
+- Allow anonymous and profile-incomplete authenticated users to browse: Gallery, Artwork details, Artists list, and Artist profile pages without being blocked by profile setup gating.
+- Change profile setup gating so it is not enforced site-wide during browsing; instead, enforce profile completion only at restricted actions (upload flow and interaction flows).
+- Gate purchase inquiry on the artwork detail page: require login first, then require a completed profile before submission.
+- Fix the Artists page rendering so it consistently displays the full set of artists returned by the backend (no unintended filtering/caching drops).
 
-**User-visible outcome:** After upgrading the canister, existing users, uploads, and related data from Version 14 (including counters and relationships) remain available automatically, with no manual migration steps or resets.
+**User-visible outcome:** Anyone can browse all artworks and artists without signing in or completing a profile; signing in and completing a profile is only required when uploading content or submitting a purchase inquiry.
